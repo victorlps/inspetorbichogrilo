@@ -2,7 +2,7 @@
 
 ## Projeto
 
-Projeto de venda online, Inspetor Bicho Grilo. Ver `docs/visao.md` quando existir.
+Projeto de venda online, Inspetor Bicho Grilo. Ver `docs/visao.md`.
 
 O usuário escreve a documentação com a IA como coautora. Ele a usa para decidir, e as sessões de IA a usam como memória.
 

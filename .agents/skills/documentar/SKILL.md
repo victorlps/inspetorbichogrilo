@@ -15,7 +15,19 @@ O método vem da skill [doc-coauthoring](https://github.com/anthropics/skills/tr
 - Antes de redigir, apresente as opções e deixe o usuário escolher o que entra.
 - Pergunte uma decisão por vez, com as opções e o efeito de cada uma, e só o que a fase atual precisa decidir. Não embuta na pergunta uma troca que o usuário não aceitou. Perguntas abertas, agrupadas ou que antecipam fases futuras deixam o usuário sem como escolher.
 - Prefira edições pequenas e revisáveis a reescritas.
-- Ao terminar, teste o documento com um leitor sem contexto, que responde perguntas só com o texto e confere se cada afirmação continua fiel à fonte.
+- Antes de propor um documento ao aceite, rode o [leitor sem contexto](#leitor-sem-contexto).
+
+## Leitor sem contexto
+
+O autor conhece o contexto e não enxerga o que o texto deixa de dizer; um leitor que só tem o texto enxerga.
+
+- **Quando:** antes de propor o documento ao aceite e depois de edição que mude o sentido de um documento aceito. Ideias ditas no chat ainda não são texto e não passam por esta etapa.
+- **Antes de rodar,** anote o que o documento precisa transmitir: as decisões, os números e as condições que o usuário deve conseguir dizer depois de ler.
+- **O leitor** é um agente que não recebe a conversa. Ele recebe só o caminho do documento e das fontes que ele cita, responde às perguntas que o usuário faria sobre o texto e aponta o que ficou ambíguo ou sem fonte. Ele também confere se cada afirmação continua fiel à fonte.
+- **Compare** as respostas com a anotação. Cada divergência é correção no texto, não pergunta ao usuário.
+- **Não anuncie** que rodou: o resultado aparece só nas edições do documento.
+- **Se o motor não lança um agente sem a conversa,** diga isso ao usuário uma vez. Um leitor simulado pelo próprio autor não vale, porque ele já conhece o contexto.
+- No Antigravity App, o agente principal lança o leitor com a ferramenta `invoke_subagent`, e o subagente começa sem o histórico da conversa ([subagentes](https://antigravity.google/docs/subagents)). Na Antigravity CLI, a documentação não diz se o histórico é herdado: **não verificado**, e vale a regra anterior.
 
 ## Onde esta skill fica
 
