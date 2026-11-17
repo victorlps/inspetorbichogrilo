@@ -1,0 +1,9 @@
+# Credenciais e ambiente local, fora do versionamento
+.env*
+.venv/
+__pycache__/
+
+# Estado local de ferramentas e do sistema
+.claude/settings.local.json
+.DS_Store
+planos/
