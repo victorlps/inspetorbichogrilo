@@ -46,3 +46,6 @@ Requisitos derivados de [visao.md](../visao.md) e das decisões aceitas em [0001
 
 - **REQ-011:** O sistema deve manter credenciais em arquivos `.env*` não lidos e não versionados e operar em formato *dark*, sem expor chaves de API nem dados pessoais do usuário em fichas, roteiros, pacotes de publicação, vitrine ou logs.
   - **Critério de aceite:** O usuário verifica que `.env*` consta como ignorado no `.gitignore` e que nenhum arquivo de produto (`ficha.md`, roteiro, `pacote.md`) ou página da vitrine contém credenciais ou identidade pessoal do usuário.
+
+- **REQ-012:** Onde houver geração de imagens por IA para provas de conceito, rascunhos ou exploração visual, o sistema deve solicitar a menor resolução útil (`512px` / `0.5K`), reservando `1K` ou superior apenas para arte final aprovada.
+  - **Critério de aceite:** O usuário verifica nas propriedades/dimensões das imagens de rascunho ou conceito geradas que a resolução não ultrapassa a faixa `0.5K` (`512px` no lado base).
