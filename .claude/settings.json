@@ -1,3 +1,9 @@
 {
-  "language": "português do Brasil"
+  "language": "português do Brasil",
+  "permissions": {
+    "allow": [
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
 }
