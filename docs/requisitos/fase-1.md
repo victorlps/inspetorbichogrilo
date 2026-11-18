@@ -49,3 +49,8 @@ Requisitos derivados de [visao.md](../visao.md) e das decisões aceitas em [0001
 
 - **REQ-012:** Onde houver geração de imagens por IA para provas de conceito, rascunhos ou exploração visual, o sistema deve solicitar a menor resolução útil (`512px` / `0.5K`), reservando `1K` ou superior apenas para arte final aprovada.
   - **Critério de aceite:** O usuário verifica nas propriedades/dimensões das imagens de rascunho ou conceito geradas que a resolução não ultrapassa a faixa `0.5K` (`512px` no lado base).
+
+## Melhoria contínua do processo
+
+- **REQ-013:** Quando um ciclo completo dos 4 portões de um produto for concluído, o sistema deve propor ao usuário uma auditoria do processo com o comando `/learn` para otimizar o fluxo com base nos atritos e aprendizados observados.
+  - **Critério de aceite:** Ao encerrar o Portão 4 de um produto, o usuário recebe o registro dos pontos de atrito do ciclo e a recomendação explícita para executar `/learn`.
