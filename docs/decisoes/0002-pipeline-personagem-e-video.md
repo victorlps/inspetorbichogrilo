@@ -1,6 +1,6 @@
 ---
-status: "accepted"
-date: 2026-11-17
+status: "superseded by 0005"
+date: 2026-11-18
 decision-makers: victor
 ---
 

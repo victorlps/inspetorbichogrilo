@@ -5,7 +5,7 @@ description: Como estruturar roteiro com narrativa de ação (Portão 2), gerar 
 
 # Roteiro e Vídeo (Portões 2 a 4)
 
-Fluxo de produção derivado de [0002-pipeline-personagem-e-video.md](../../../docs/decisoes/0002-pipeline-personagem-e-video.md), [0003-fluxo-aprovacao-e-publicacao.md](../../../docs/decisoes/0003-fluxo-aprovacao-e-publicacao.md), [0004-identidade-visual-personagem.md](../../../docs/decisoes/0004-identidade-visual-personagem.md) e [fase-1.md](../../../docs/requisitos/fase-1.md) (`REQ-003` a `REQ-007`, `REQ-012`).
+Fluxo de produção derivado de [0005-pipeline-hibrido-25d-e-flow.md](../../../docs/decisoes/0005-pipeline-hibrido-25d-e-flow.md), [0003-fluxo-aprovacao-e-publicacao.md](../../../docs/decisoes/0003-fluxo-aprovacao-e-publicacao.md), [0004-identidade-visual-personagem.md](../../../docs/decisoes/0004-identidade-visual-personagem.md) e [fase-1.md](../../../docs/requisitos/fase-1.md) (`REQ-003` a `REQ-007`, `REQ-012`).
 
 ## 1. Roteiro com narrativa de ação (Portão 2)
 
@@ -21,6 +21,6 @@ Fluxo de produção derivado de [0002-pipeline-personagem-e-video.md](../../../d
 
 ## 3. *Preview* leve (Portão 3) e Pacote Final (Portão 4)
 
-- Enquanto o Portão 3 estiver ativo, gere a narração em áudio (`edge-tts`) e um único arquivo `preview.mp4` leve em baixa resolução/viewport já com áudio e imagem sincronizados para reprodução direta no player padrão do sistema (`REQ-005`).
-- Após a aprovação do *preview* (ou do roteiro, quando o Portão 3 estiver dispensado pelo usuário), execute o render final `9:16` em alta definição no Blender com *lip-sync* offline (`rhubarb`) e composição no `ffmpeg`, entregando o MP4 final sem marca d'água e `pacote.md` com legenda, palavras-chave/tags, código curto da vitrine, link principal de afiliado, palavra-chave de DM (`REQ-010`) e eventuais avisos de marcação de IA (`REQ-006`, `REQ-007`).
+- Enquanto o Portão 3 estiver ativo, gere a narração em áudio (`edge-tts`) e um único arquivo `preview.mp4` leve em baixa resolução já com áudio e imagem sincronizados (Rig 2.5D + eventual rascunho *Omni 360p*) para reprodução direta no player padrão do sistema (`REQ-005`).
+- Após a aprovação do *preview* (ou do roteiro, quando o Portão 3 estiver dispensado pelo usuário), gere o MP4 final `9:16` em alta definição combinando o Rig 2.5D com *lip-sync* offline (`rhubarb`) e eventuais clipes finais do Google Flow no `ffmpeg`, entregando o vídeo sem marca d'água e `pacote.md` com legenda, palavras-chave/tags, código curto da vitrine, link principal de afiliado, palavra-chave de DM (`REQ-010`) e eventuais avisos de marcação de IA (`REQ-006`, `REQ-007`).
 - Atualize a vitrine estática na bio somente após a aprovação final do Portão 4 no chat (`REQ-008`).
