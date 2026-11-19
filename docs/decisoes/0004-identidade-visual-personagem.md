@@ -37,3 +37,4 @@ Opção escolhida: **Opção 1 (Animação 3D estilizada em meio-corpo "bicho gr
 
 - **Bom:** consolida anatomia, vestimenta, engenhocas articuladas, controles faciais e saída com transparência em uma especificação única para modelagem e *rigging* no Blender.
 - **Ruim:** a inclusão de braços, mãos articuladas, aba maleável e hastes mecânicas no chapéu aumenta a complexidade inicial do *rig* em relação a um busto estático ou estilo *toy-art*.
+- **Nota de atualização (2026-11-18):** a especificação visual definida nesta decisão permanece vigente, porém a implementação técnica foi adaptada da modelagem 3D no Blender para o **Rig 2.5D em camadas PNG** conforme [0005-pipeline-hibrido-25d-e-flow.md](0005-pipeline-hibrido-25d-e-flow.md) e [0006-governanca-qualidade-finops-e-composicao-visual.md](0006-governanca-qualidade-finops-e-composicao-visual.md).

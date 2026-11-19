@@ -98,6 +98,12 @@ decision-makers: victor
 
 ## Opções consideradas
 
+### Opção 1: ...
+
+#### Viabilidade de custo (FinOps) *(quando houver ferramentas, infra, APIs, tokens ou créditos)*
+
+- Recursos, projeção determinística (1/30/100/300) em créditos/% e US$, e alternativas quando aplicável.
+
 ## Decisão
 
 Opção escolhida: <opção>, porque <justificativa>.
@@ -109,6 +115,12 @@ Opção escolhida: <opção>, porque <justificativa>.
 ```
 
 O `status` usa os valores do MADR: `proposed`, `accepted`, `rejected`, `deprecated` ou `superseded by NNNN`. Quando o usuário aceitar no chat, passe a `accepted` e atualize a data.
+
+Conforme [0006-governanca-qualidade-finops-e-composicao-visual.md](../../../docs/decisoes/0006-governanca-qualidade-finops-e-composicao-visual.md), sempre que uma decisão envolver ferramentas, infraestrutura, APIs externas, tokens de IA ou créditos de plataforma, inclua uma subseção de **Viabilidade de custo (FinOps)** na opção escolhida registrando:
+
+1. **Inventário de recursos:** infraestrutura local (CPU, RAM, disco e tempo por execução), tokens de LLM/imagem, créditos de plataformas e consumo da cota *freemium* ou assinatura já mantida.
+2. **Projeção determinística de escala:** tabela ou lista calculada com custo unitário e mensal para **1, 30, 100 e 300 execuções/mês** em créditos/% da cota e em **US$**, identificando o volume em que a cota atual satura.
+3. **Alternativas mais econômicas (somente quando necessário):** proponha opções alternativas apenas diante de gargalo técnico comprovado, risco de estouro de cota ou desvio da restrição de custo inicial mínimo de `docs/visao.md`.
 
 ## Pesquisa
 
