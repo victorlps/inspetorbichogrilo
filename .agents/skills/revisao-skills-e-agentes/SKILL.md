@@ -9,7 +9,7 @@ description: >-
 
 # Revisão de Skills e Agentes (`@Revisor-Skills`)
 
-Esta skill define a régua objetiva usada pelo `@Revisor-Skills` para auditar propostas de criação ou alteração em `.agents/skills/`, `.agents/plugins/` ou regras de equipe em `AGENTS.md` (enviadas por `@Curador`, `@Carlos`, `@Steve` ou pelo `Coordenador`) antes do commit no Git.
+Esta skill define a régua objetiva usada pelo `@Revisor-Skills` para auditar propostas de criação ou alteração em `.agents/skills/`, `.agents/plugins/` ou regras de equipe em `AGENTS.md` (enviadas por `@Curador`, `@Carlos`, `@Steve` ou por `Mike`, Coordenador) antes do commit no Git.
 
 ## 1. Critérios Obrigatórios da Régua
 
@@ -21,13 +21,13 @@ Esta skill define a régua objetiva usada pelo `@Revisor-Skills` para auditar pr
    - Regras sempre ativas (`AGENTS.md`) respeitam o teto de **`24 KB` (`24.000` bytes)** por arquivo e o orçamento agregado de **`20.000` tokens** definidos em `~/.gemini/antigravity/builtin/skills/agy-customizations/docs/rules.md` (lido em `2026-11-19`), conferido via `wc -c` e mantendo as descrições em frontmatter enxutas.
 2. **Linguagem afirmativa:** as instruções descrevem o comportamento desejado, os critérios positivos de verificação e exemplos do resultado esperado, mantendo o estilo livre de listas proibitivas reativas; fronteiras estruturais de segurança ou de papel (como manter `.env*` fora de leitura, preservar modo auditoria sem escritas ou não invocar colegas especialistas via `invoke_subagent`) devem explicitar claramente o escopo positivo permitido e o limite operacional.
 3. **Regra de evidência e honestidade numérica:** números, limites técnicos ou padrões empíricos citados trazem fonte verificada e data de leitura (ou referência a documento em `docs/`); parâmetros operacionais escolhidos pelo projeto são explicitamente identificados como **convenção calibrável** (ou equivalente explícito como *parâmetro operacional calibrável*) vinculado a um ADR em `docs/decisoes/`.
-4. **Correção na fonte (*fix at the source*):** utilizando o mapa da equipe em `revisor-skills.md`, rejeite acréscimo de regras defensivas na skill de um agente para compensar falha de insumo vindo de outro responsável (ex.: `@Curador`, `@Carlos`, `@Steve` ou `Coordenador`); exija o redirecionamento em linguagem afirmativa como feedback para o responsável na origem.
+4. **Correção na fonte (*fix at the source*):** utilizando o mapa da equipe em `revisor-skills.md`, rejeite acréscimo de regras defensivas na skill de um agente para compensar falha de insumo vindo de outro responsável (ex.: `@Curador`, `@Carlos`, `@Steve` ou `Mike`, Coordenador); exija o redirecionamento em linguagem afirmativa como feedback para o responsável na origem.
 5. **Replicabilidade entre nichos e produtos (`docs/visao.md`):** o método descrito nas skills gerais e agentes funciona para qualquer produto ou categoria, mantendo exemplos ou restrições específicas de um único produto apenas em `produtos/<slug>/`.
 
 ## 2. Contrato de Entrada, Auditoria e Parada Adaptativa
 
-- **Convenção calibrável de rodadas ([0007](../../../docs/decisoes/0007-equipe-agentes-especializados-e-governanca-skills.md)):** este protocolo aplica **parada adaptativa com teto calibrável de `3` rodadas** entre o proponente (via Coordenador) e `@Revisor-Skills`.
-- **Contrato de entrada esperado do Coordenador:** `RODADA: N/3`, pareceres das rodadas anteriores (quando `N > 1`), crítica/origem da mudança, diagnóstico de causa-raiz, caminho(s) do(s) arquivo(s) alvo, diff ou proposta completa de texto e eventuais fontes consultadas. Leia o(s) arquivo(s) alvo atuais no disco via `read_file` (e confira bytes via `wc -c` em `run_command` somente-leitura quando tocar `AGENTS.md`). Se faltar item essencial para auditar, devolva `STATUS: AJUSTAR` nas Rodadas `1/3` e `2/3` (ou `STATUS: ESCALAR_USUARIO` na Rodada `3/3`) solicitando exatamente os insumos faltantes.
+- **Convenção calibrável de rodadas ([0007](../../../docs/decisoes/0007-equipe-agentes-especializados-e-governanca-skills.md)):** este protocolo aplica **parada adaptativa com teto calibrável de `3` rodadas** entre o proponente (via Mike, Coordenador) e `@Revisor-Skills`.
+- **Contrato de entrada esperado de Mike:** `RODADA: N/3`, pareceres das rodadas anteriores (quando `N > 1`), crítica/origem da mudança, diagnóstico de causa-raiz, caminho(s) do(s) arquivo(s) alvo, diff ou proposta completa de texto e eventuais fontes consultadas. Leia o(s) arquivo(s) alvo atuais no disco via `read_file` (e confira bytes via `wc -c` em `run_command` somente-leitura quando tocar `AGENTS.md`). Se faltar item essencial para auditar, devolva `STATUS: AJUSTAR` nas Rodadas `1/3` e `2/3` (ou `STATUS: ESCALAR_USUARIO` na Rodada `3/3`) solicitando exatamente os insumos faltantes.
 - **Execução estritamente somente-leitura:** emita apenas o parecer sem editar arquivos no disco nem gravar logs temporários.
 - **Critério objetivo dos 3 status:**
   - `APROVADO`: todos os 5 critérios da Seção 1 estão atendidos (caminho normal esperado já na Rodada `1/3`);

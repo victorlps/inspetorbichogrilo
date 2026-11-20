@@ -20,7 +20,7 @@ Este guia orienta a criação de roteiros verticais (`9:16`) com **emoção conv
 
 ## 3. Ritmo Falado e Direção Vocal
 
-- **Cadência respirada e expressiva:** alterne conscientemente frases curtas de impacto com frases fluidas e conectadas de explicação no ritmo natural do português falado, respeitando o **teto operacional calibrável de `15` palavras por frase** (medido por frase terminada em pontuação final pelo script determinístico do Coordenador — convenção inicial registrada em [0006](../../../../docs/decisoes/0006-governanca-qualidade-finops-e-composicao-visual.md#L69), sujeita a ajuste contínuo pelos ciclos `/learn` com base em testes reais de TTS e retenção).
+- **Cadência respirada e expressiva:** alterne conscientemente frases curtas de impacto com frases fluidas e conectadas de explicação no ritmo natural do português falado, respeitando o **teto operacional calibrável de `15` palavras por frase** (medido por frase terminada em pontuação final pelo script determinístico executado por Mike (Coordenador) — convenção inicial registrada em [0006](../../../../docs/decisoes/0006-governanca-qualidade-finops-e-composicao-visual.md#L69), sujeita a ajuste contínuo pelos ciclos `/learn` com base em testes reais de TTS e retenção).
 - **Separação Tela × Voz:** datas históricas, tabelas numéricas, especificações detalhadas e selos vivem nas cartelas e rótulos visuais, deixando a voz livre para emoção, contraste e clareza humana.
 - **Direção vocal explícita:** registre entre colchetes a intenção emocional de cada cena junto à ação visual (exemplos ilustrativos: `[intrigado → surpresa]`, `[empolgado / alívio prático]`, `[alerta sério → transparência]`, `[fechamento confiante]`) para guiar entonação no TTS e expressões faciais no `Rig 2.5D`.
 
