@@ -1,6 +1,6 @@
 # Requisitos — Fase 1 (Inspetor Bicho Grilo)
 
-Proposto em 2026-11-19 (revisão de REQ-014; versão anterior aceita por victor em 2026-11-19).
+Aceito por victor em 2026-11-20.
 
 Requisitos derivados de [visao.md](../visao.md), das decisões em [0001-canais-e-afiliados-fase-1.md](../decisoes/0001-canais-e-afiliados-fase-1.md), [0003-fluxo-aprovacao-e-publicacao.md](../decisoes/0003-fluxo-aprovacao-e-publicacao.md), [0004-identidade-visual-personagem.md](../decisoes/0004-identidade-visual-personagem.md), [0005-pipeline-hibrido-25d-e-flow.md](../decisoes/0005-pipeline-hibrido-25d-e-flow.md), [0006-governanca-qualidade-finops-e-composicao-visual.md](../decisoes/0006-governanca-qualidade-finops-e-composicao-visual.md) e [0007-equipe-agentes-especializados-e-governanca-skills.md](../decisoes/0007-equipe-agentes-especializados-e-governanca-skills.md), e das pesquisas em [custo-agentes-revisores-e-finops.md](../pesquisa/custo-agentes-revisores-e-finops.md), [video-ia-vs-renderizacao-deterministica-mecanismos.md](../pesquisa/video-ia-vs-renderizacao-deterministica-mecanismos.md), [alinhamento-ferramentas-producao-video-e-audio.md](../pesquisa/alinhamento-ferramentas-producao-video-e-audio.md), [panorama-mercado-ia-imagem-audio-video.md](../pesquisa/panorama-mercado-ia-imagem-audio-video.md) e [equipe-agentes-especializados-e-revisao-iterativa.md](../pesquisa/equipe-agentes-especializados-e-revisao-iterativa.md).
 
