@@ -1,0 +1,112 @@
+{
+  "name": "Inspetor Bicho Grilo Rig 2.5D",
+  "base_size": [
+    896,
+    1200
+  ],
+  "layers": {
+    "cabeca_base": "cabeca_base.png",
+    "torso_neutro": "torso_neutro.png",
+    "torso_apontar": "torso_apontar.png",
+    "torso_toque_chapeu": "torso_toque_chapeu.png",
+    "braco_toque_chapeu": "braco_toque_chapeu.png",
+    "antena_esq": "antena_esq.png",
+    "antena_dir": "antena_dir.png",
+    "haste_lanterna": "haste_lanterna.png",
+    "feixe_lanterna": "feixe_lanterna.png",
+    "haste_lupa": "haste_lupa.png",
+    "sobrancelha_esq": "sobrancelha_esq.png",
+    "sobrancelha_dir": "sobrancelha_dir.png",
+    "olhos_meio": "olhos_meio.png",
+    "olhos_fechado": "olhos_fechado.png",
+    "olhos_direita": "olhos_direita.png"
+  },
+  "visemas": {
+    "BMP": "visemas/visema_BMP.png",
+    "X": "visemas/visema_X.png",
+    "FV": "visemas/visema_FV.png",
+    "A": "visemas/visema_A.png",
+    "EI": "visemas/visema_EI.png",
+    "OU": "visemas/visema_OU.png",
+    "SORRISO": "visemas/visema_SORRISO.png"
+  },
+  "pivots": {
+    "antena_esq": [
+      336,
+      218
+    ],
+    "antena_dir": [
+      492,
+      218
+    ],
+    "haste_lanterna": [
+      332,
+      198
+    ],
+    "haste_lupa": [
+      572,
+      180
+    ],
+    "cabeca": [
+      430,
+      595
+    ]
+  },
+  "actions": {
+    "neutro": {
+      "torso": "torso_neutro",
+      "lupa_deg": 0.0,
+      "lanterna_deg": 0.0,
+      "lanterna_on": false,
+      "eyebrow": "neutro",
+      "look_at": "camera",
+      "visema_rest": "X"
+    },
+    "inspecao_lupa": {
+      "torso": "torso_apontar",
+      "lupa_deg": 18.0,
+      "lanterna_deg": 4.0,
+      "lanterna_on": false,
+      "eyebrow": "analitico",
+      "look_at": "direita",
+      "visema_rest": "X"
+    },
+    "lanterna_on": {
+      "torso": "torso_neutro",
+      "lupa_deg": -4.0,
+      "lanterna_deg": -10.0,
+      "lanterna_on": true,
+      "eyebrow": "alerta",
+      "look_at": "camera",
+      "visema_rest": "X"
+    },
+    "analitico": {
+      "torso": "torso_neutro",
+      "lupa_deg": -15.0,
+      "lanterna_deg": 5.0,
+      "lanterna_on": false,
+      "eyebrow": "analitico",
+      "look_at": "direita",
+      "visema_rest": "X"
+    },
+    "apontar_produto": {
+      "torso": "torso_apontar",
+      "lupa_deg": -10.0,
+      "lanterna_deg": 2.0,
+      "lanterna_on": false,
+      "eyebrow": "neutro",
+      "look_at": "direita",
+      "visema_rest": "SORRISO"
+    },
+    "toque_chapeu": {
+      "torso": "torso_toque_chapeu",
+      "foreground_arm": "braco_toque_chapeu",
+      "lupa_deg": 8.0,
+      "lanterna_deg": 6.0,
+      "lanterna_on": false,
+      "eyebrow": "neutro",
+      "look_at": "camera",
+      "visema_rest": "SORRISO"
+    }
+  }
+}
