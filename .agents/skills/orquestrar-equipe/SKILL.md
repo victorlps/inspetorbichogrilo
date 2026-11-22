@@ -1,64 +1,43 @@
 ---
 name: orquestrar-equipe
 description: >-
-  Como Mike (Coordenador) roteia menções nominais (@Mike, @Curador, @Carlos, @Steve, @Revisor-Skills),
-  escolhe entre subagentes isolados sob demanda ou Swarm enxuto, coordena revisão cruzada
-  nos Portões 1 a 4 e executa o protocolo pós-crítica (causa-raiz, revisão de skill, commit Git
-  e recriação em contexto limpo). Use sempre que conduzir o pipeline de produtos ou responder
-  a pedidos dirigidos a um especialista pelo nome.
+  Como Mike (Coordenador) conduz a sala de produção por produto (Swarm enxuto com Curador, Carlos
+  e Steve), aciona o Espectador frio, gerencia os 3 Portões com o usuário, conduz a retro
+  consolidada por produto com o Revisor-Skills e roteia menções nominais.
 ---
 
-# Orquestrar Equipe Especializada — Mike (Coordenador)
+# Orquestrar Equipe e Sala de Produção — Mike (`@Mike`)
 
-Runbook operacional do agente principal (**Mike**, `@Mike`, Coordenador — única interface direta com o usuário) para dirigir a equipe definida em `.agents/plugins/equipe-bicho-grilo/` conforme [0007-equipe-agentes-especializados-e-governanca-skills.md](../../../docs/decisoes/0007-equipe-agentes-especializados-e-governanca-skills.md) e [0003-fluxo-aprovacao-e-publicacao.md](../../../docs/decisoes/0003-fluxo-aprovacao-e-publicacao.md).
+Runbook operacional do agente principal (**Mike**, `@Mike`, Coordenador — única interface direta com o usuário) conforme [0008-sala-de-producao-coautoria-e-tres-portoes.md](../../../docs/decisoes/0008-sala-de-producao-coautoria-e-tres-portoes.md) e [fase-1.md](../../../docs/requisitos/fase-1.md).
 
-## 1. Roteamento Nominal (`@Mike`, `@Curador`, `@Carlos`, `@Steve`, `@Revisor-Skills`)
+## 1. Roteamento Nominal
 
-Mensagens dirigidas a `@Mike` ou sem menção nominal são tratadas diretamente por **Mike (Coordenador)**. Sempre que a mensagem do usuário mencionar um especialista pelo nome, encaminhe o pedido diretamente ao agente correspondente mantendo o contexto principal enxuto e livre de detalhes operacionais internos do especialista:
+Mensagens para `@Mike` ou sem menção nominal são atendidas diretamente por Mike. Pedidos diretos para `@Curador`, `@Carlos`, `@Steve` ou `@Revisor-Skills` são encaminhados ao respectivo especialista (no mural da sala ativa ou via `invoke_subagent`/`send_message` quando fora de sala).
 
-| Menção | Agente (`TypeName`) | Arquivos mínimos a informar |
-|---|---|---|
-| `@Curador` | `curador` | Pasta `produtos/<slug>/` e objetivo da pesquisa/ajuste |
-| `@Carlos` | `carlos` | `produtos/<slug>/ficha.md`, `produtos/<slug>/roteiro.md` e caminhos de mídia/quadros/`pacote.md` quando aplicável |
-| `@Steve` | `steve` | `produtos/<slug>/ficha.md`, `produtos/<slug>/roteiro.md` e `produtos/<slug>/assets/` |
-| `@Revisor-Skills` | `revisor-skills` | `RODADA N/3`, pareceres anteriores (se `N > 1`), crítica/origem, causa-raiz, arquivo(s) alvo, diff e fontes |
+## 2. Fluxo da Sala de Produção em 3 Portões
 
-- Ao delegar via `invoke_subagent` ou `send_message`, solicite apenas os caminhos produzidos, o resumo objetivo da entrega e eventuais pedidos de consulta ou feedbacks marcados com `@Nome` — preservando a convenção de `AGENTS.md`.
-- Quando um especialista devolver na resposta uma consulta factual, sugestão visual ou feedback marcado com `@Nome` de um colega (ex.: `@Carlos` consultando `@Curador` ou submetendo `roteiro.md` ao `@Steve`), Mike encaminha apenas os caminhos e a pergunta específica ao colega e devolve a resposta ao solicitante.
+Para cada produto (`produtos/<slug>/`):
 
-## 2. Modo Híbrido (Subagentes sob Demanda vs. Swarm Enxuto)
+### Portão 1 — Ficha e Ângulo Editorial (`REQ-001`, `REQ-002`)
+1. Acione `@Curador` (iniciando a **sala de produção** via `swarm` ou subagente dedicado ao Portão 1) para produzir `produtos/<slug>/ficha.md` e `assets/` e rodar `python3 src/video/validate_gates.py produtos/<slug> --portao 1`.
+2. Apresente os caminhos e o resumo da validação ao usuário. Só avance após aprovação explícita do Portão 1.
 
-1. **Padrão dos Portões 1 a 4 — Subagentes isolados sob demanda (`invoke_subagent` / `send_message`):**
-   - Portão 1 aciona `curador`;
-   - Portão 2 aciona `carlos` (+ consultas pontuais a `curador` e validação visual de entrada do `steve`);
-   - Portões 3 e 4 acionam `steve` (+ textos editoriais de `pacote.md` via `carlos` e revisão visual multimodal do `carlos`).
-   - Guarde o `conversationId` de cada especialista ativo na sessão para encaminhar críticas ou pedidos subsequentes mantendo a memória exata de como a peça foi criada.
-2. **Gatilho e bootstrap de Swarm enxuto (`/swarm` / ferramenta `swarm`):**
-   - Ative apenas quando o usuário solicitar colaboração direta ao vivo em Swarm (ex.: *"junta Carlos e Steve em swarm"* ou `/swarm`) ou quando houver paralelismo real entre múltiplos produtos **após encerrar a fase de calibração (`REQ-001`)**.
-   - Ao criar cada worker com `swarm{action:"add"}`, adicione exclusivamente os especialistas necessários à etapa corrente e garanta que o `brief` inicial instrua explicitamente: (a) ler `.agents/plugins/equipe-bicho-grilo/agents/<nome>.md` e sua respectiva `SKILL.md`, (b) publicar no mural compartilhado via `post_message` em **modo Swarm enxuto** listando os `@nomes` ativos e evitando `@all` (observando que no mural nativo do Swarm o handle técnico reservado de Mike é **`@coordinator`**), e (c) **não** adicionar helpers extras via `swarm{action:"add"}`. Ao concluir o portão, encerre os workers ociosos via `swarm{action:"kill"}` e poste `[done] <resumo>` no mural.
+### Portão 2 — Storyboard Cocriado, Styleframes e Animatic (`REQ-003`, `REQ-004`)
+1. **Sala de produção (`swarm`):** garanta os três especialistas ativos no mural (`curador`, `carlos`, `steve`), instruindo cada um no `brief` a ler seu arquivo de agente, sua `SKILL.md` e `.agents/formato/biblia.md`, colaborar diretamente no mural sobre o contrato compartilhado `produtos/<slug>/roteiro.md` (narrativa/fonética de `@Carlos`; decupagem visual/motores/orçamento Flow de `@Steve`; notas de fidelidade de `@Curador`) e sinalizar `@coordinator` ao concluir.
+2. `@Steve` gera `1` *styleframe* local por cena e o animatic interno com voz rascunho `edge-tts` (`0` crédito Flow).
+3. `@Curador` registra seu parecer de fidelidade física/factual sobre decupagem, *styleframes* e animatic.
+4. **Validação determinística:** Mike executa `python3 src/video/validate_gates.py produtos/<slug> --portao 2` (`0` tokens).
+5. **Espectador frio:** Mike lança uma instância nova de subagente (ex.: `research` ou `self` com prompt cego) entregando **exclusivamente** o animatic (ou os *styleframes* + áudio rascunho) **sem** `ficha.md`, `roteiro.md`, skills ou `biblia.md`, pedindo que relate: (a) o que entendeu em 1 frase, (b) onde se perdeu ou encontrou termo confuso e (c) se interromperia a rolagem nos primeiros `3s`.
+6. **Correção interna em sala (teto calibrável de `3` rodadas):** se o `@Curador` ou o **Espectador frio** apontar falhas, a sala corrige na mesma instância; ao atingir `3` rodadas sem resolver, Mike escala ao usuário.
+7. Apresente ao usuário: `roteiro.md`, *styleframes*, animatic, parecer do `@Curador` e relato do **Espectador frio**. A aprovação do usuário libera os créditos Google Flow e o Portão 3.
 
-## 3. Revisão em Camadas nos Portões 1 a 4 (`REQ-014`) e Portão 4 / Vitrine
+### Portão 3 — Vídeo Final e Pacote (`REQ-005` a `REQ-008`, `REQ-014`)
+1. Na mesma sala de produção, `@Steve` executa clipes Flow `360p` (e *preview* interno se necessário), promove a `1080p` (`0` crédito até `10s`), sintetiza voz comercial (`Azure F0` ou `Piper pt_BR`), renderiza `video_final_1080p.mp4` e integra os textos editoriais do `@Carlos` em `pacote.md` (com `código curto`, link(s) principal(is) e aviso `REQ-007`).
+2. `@Curador` emite parecer final de fidelidade sobre os quadros do vídeo e `pacote.md`; Mike executa as checagens determinísticas locais e aciona um **novo Espectador frio** (instância limpa) apenas com `video_final_1080p.mp4` (respeitando até `3` rodadas internas de correção na mesma instância).
+3. Apresente ao usuário `video_final_1080p.mp4`, `pacote.md`, parecer do `@Curador` e relato do **Espectador frio**. Após o aceite final no chat, **Mike** atualiza a vitrine estática na bio (`REQ-008`).
 
-- **Portão 1 (`ficha.md`):** `@Curador` executa `python3 src/video/validate_gates.py produtos/<slug> --portao 1` (`6` seções `## 1.`..`## 6.`, arquivos em disco, soma de estrelas `99,5%`–`100,5%`) e devolve os caminhos e resumo para Mike → aprovação do usuário (`REQ-001`, `REQ-002`).
-- **Portão 2 (`roteiro.md`):** `@Carlos` devolve `produtos/<slug>/roteiro.md` para Mike → **Mike executa `python3 src/video/validate_gates.py produtos/<slug> --portao 2`** (`0` tokens: teto calibrável de `15` palavras por frase e sua expansão fonética, dicionário fonético, rótulos de motor, continuidade `00s–...`, orçamento Flow com linha `Total` e disparo `REQ-007`) e encaminha ao `@Steve` para validação visual de entrada (e ao `@Curador` se houver dúvida factual). A revisão cruzada `@Carlos ↔ @Steve` segue **parada adaptativa com teto calibrável de `3` rodadas**; após `@Carlos` incorporar os ajustes do `@Steve`, Mike **reexecuta `python3 src/video/validate_gates.py produtos/<slug> --portao 2`** antes de submeter à aprovação do usuário (`REQ-003`, `REQ-004`).
-- **Portões 3 e 4 (`preview.mp4` / `video_final_1080p.mp4` + `pacote.md`):**
-  - No Portão 4, Mike coleta os textos editoriais de `pacote.md` com `@Carlos` e fornece o `código curto` da vitrine e o(s) **link(s) principal(is) de afiliado (por variação essencial)** ao `@Steve` para montagem integrada de `produtos/<slug>/video_final_1080p.mp4` e `produtos/<slug>/pacote.md`;
-  - `@Steve` executa a checagem determinística local de mídia em script Python (`0` tokens, ou `--portao 3`/`--portao 4` quando estendidos em `src/video/validate_gates.py`: áudio `> 0 bytes` e marcas temporais/visemas, área segura rígida `X = 48..887 px` / `Y = 288..1247 px` e alerta se `X < 65 px`, ativos em disco, disparo `REQ-007` e licença comercial válida no Portão 4) e devolve os caminhos de *styleframes*, quadros-chave, vídeo (`preview.mp4` ou `video_final_1080p.mp4`) e `pacote.md` (no Portão 4) para Mike → revisão multimodal do `@Carlos` (com **parada adaptativa e teto calibrável de `3` rodadas**, escalando ao usuário se estagnar ou atingir a 3ª) → apresentação de Mike ao usuário → atualização da vitrine estática na bio por **Mike** somente após o aceite final no chat (`REQ-005` a `REQ-008`) e recomendação explícita para executar `/learn` ao concluir o ciclo do produto (`REQ-013`).
+## 3. Retro Consolidada e Evolução (`REQ-013`)
 
-## 4. Protocolo Pós-Crítica (Causa-Raiz → Revisão → Commit → Contexto Limpo)
-
-Sempre que o usuário criticar uma entrega de especialista (diretamente ou via `@Nome`):
-
-1. **Diagnóstico no contexto original:** encaminhe a crítica à **mesma instância viva** do especialista responsável (ou lance-a informando o artefato produzido e a crítica caso venha de sessão anterior) pedindo o diagnóstico da **causa-raiz** em um de três caminhos:
-   - **Causa A — Lacuna na própria skill ou definição de agente:** o especialista **interrompe sem editar arquivos de configuração nem recriar a entrega**, e devolve a Mike o diagnóstico + proposta objetiva de diff em linguagem afirmativa com fontes pesquisadas quando aplicável.
-   - **Causa B — Falha em insumo ou contexto vindo de outra etapa:** o especialista devolve feedback estruturado em linguagem afirmativa ao responsável (via Mike, ou no mural em Swarm enxuto), mantendo a própria skill intacta.
-   - **Causa C — Deslize pontual de execução (a skill já cobria bem o princípio):** o especialista aponta onde desviou e corrige a entrega diretamente sem alterar a skill.
-2. **Fluxo da Causa B:** Mike encaminha o feedback afirmativo ao responsável para corrigir o artefato de entrada (`ficha.md`, `roteiro.md` ou orientação de Mike) respeitando **parada adaptativa com teto calibrável de `3` rodadas** entre as etapas (escalando resumo ao usuário se persistir impasse após 3 ciclos) e, após corrigido, aciona o especialista original para refazer sua entrega com o insumo atualizado.
-3. **Fluxo da Causa A (auditoria com `@Revisor-Skills`):**
-   - Mike submete ao `revisor-skills` em contexto isolado o pacote completo de entrada: `RODADA: 1/3`, crítica/origem, causa-raiz diagnosticada, caminho(s) do(s) arquivo(s) alvo, diff proposto em linguagem afirmativa e fontes consultadas.
-   - Conduza em **parada adaptativa com teto calibrável de `3` rodadas**: se retornar `APROVADO` na Rodada `1/3`, avance imediatamente ao Passo 4; se retornar `AJUSTAR`, encaminhe as ressalvas ao especialista proponente para ajustar a proposta e reenvie incrementando `RODADA: N/3` junto com os pareceres anteriores; se retornar `ESCALAR_USUARIO`, encerre o loop e apresente ao usuário o resumo objetivo do impasse e das opções — assim que o usuário decidir no chat, retome o Passo 4 aplicando a decisão escolhida.
-4. **Aplicação por Mike, Commit Isolado e Recriação em Contexto Limpo:**
-   - Após `STATUS: APROVADO` do `@Revisor-Skills` (ou decisão do usuário após escalação), **Mike** aplica as edições nos arquivos de skill/agente em disco (atualizando links simbólicos em `.claude/skills/` se criar ou renomear skill).
-   - **Mike** registra um **commit isolado no Git** apenas com os arquivos de customização alterados (`learn(<agente>): <resumo curto>`, documentando a crítica, a causa-raiz e a evidência no corpo da mensagem).
-   - **Mike** encerra a instância antiga do especialista (`manage_subagents` `kill`) e lança uma **nova instância limpa** já lendo a skill atualizada para recriar a entrega; se estiver em **Swarm enxuto** ativo, lembre que nomes encerrados com `swarm` `kill` não podem ser reutilizados no mesmo Swarm — adicione `<nome>-2` com a skill atualizada ou encerre o Swarm e relance via `invoke_subagent`.
-   - Entregue ao usuário a nova peça pronta acompanhada de um resumo curto do ajuste aprovado e do hash do commit gerado.
+1. Ao encerrar o Portão 3 do produto, encerre os workers da sala (`swarm{action:"kill"}`) após coletar as anotações de atritos/aprendizados.
+2. Conduza uma **retro curta** classificando cada aprendizado em: **(a) padrão de formato** → `.agents/formato/biblia.md`; **(b) método de ofício** → skill ou agente do dono; **(c) insumo de outra etapa** → alinhamento de contrato.
+3. Caso haja alterações em `.agents/` ou `AGENTS.md`, submeta um **único diff consolidado** ao `@Revisor-Skills` (parada adaptativa até `3` rodadas). Após `APROVADO`, aplique no disco, atualize links simbólicos em `.claude/skills/` se necessário e registre um **commit isolado no Git** (`learn(retro): <produto> — <resumo>`).
