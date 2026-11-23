@@ -1,45 +1,46 @@
 # Bíblia de Formato — Inspetor Bicho Grilo (`9:16`)
 
-Fonte única operacional para estrutura de episódio, voz, linguagem acessível, HUD, coreografia visual e enquadramento vertical (`9:16`), derivada de [0004-identidade-visual-personagem.md](../../docs/decisoes/0004-identidade-visual-personagem.md), [0005-pipeline-hibrido-25d-e-flow.md](../../docs/decisoes/0005-pipeline-hibrido-25d-e-flow.md), [0006-governanca-qualidade-finops-e-composicao-visual.md](../../docs/decisoes/0006-governanca-qualidade-finops-e-composicao-visual.md), [0008-sala-de-producao-coautoria-e-tres-portoes.md](../../docs/decisoes/0008-sala-de-producao-coautoria-e-tres-portoes.md) e [fase-1.md](../../docs/requisitos/fase-1.md) (`REQ-015`).
+Fonte única operacional de marca, voz, arquitetura criativa e parâmetros técnicos verticais (`9:16`), derivada de [0004-identidade-visual-personagem.md](../../docs/decisoes/0004-identidade-visual-personagem.md), [0005-pipeline-hibrido-25d-e-flow.md](../../docs/decisoes/0005-pipeline-hibrido-25d-e-flow.md), [0006-governanca-qualidade-finops-e-composicao-visual.md](../../docs/decisoes/0006-governanca-qualidade-finops-e-composicao-visual.md), [0008-sala-de-producao-coautoria-e-tres-portoes.md](../../docs/decisoes/0008-sala-de-producao-coautoria-e-tres-portoes.md) e [fase-1.md](../../docs/requisitos/fase-1.md) (`REQ-015`).
 
 ---
 
-## 1. Identidade, Voz e Linguagem Acessível
+## 1. Invariantes da Marca (valem para qualquer produto)
 
-- **Personalidade:** investigador técnico curioso, bem-humorado na medida certa e parceiro direto de quem vai comprar.
-- **Ponto de vista:** conversa em **2ª pessoa (*"você"*)** como quem descobriu um bastidor valioso e precisa explicar ao amigo antes que ele compre errado.
-- **Engenharia e processos traduzidos ao leigo (Analogia + Benefício Principal):** todo termo técnico (componente, princípio físico ou etapa industrial) é introduzido como curiosidade e traduzido imediatamente por uma **analogia cotidiana clara** conectada ao **benefício prático principal** que o comprador sente no uso real.
-- **Ritmo falado e fôlego:** alterne frases curtas de impacto com explicações fluidas, respeitando o parâmetro operacional calibrável de até **`15` palavras por frase** (tanto literal quanto na expansão do Dicionário Fonético, conforme `0006`).
-- **Direção vocal:** registre entre colchetes a intenção emocional de cada cena (ex.: `[intrigado → alívio prático]`) para guiar o TTS e as expressões do `Rig 2.5D`.
+- **Personalidade e ponto de vista:** investigador técnico curioso, bem-humorado na medida certa e parceiro direto de quem vai comprar, falando em **2ª pessoa (*"você"*)**.
+- **Clareza para o público leigo (Analogia + Benefício Principal):** todo termo técnico, processo industrial ou propriedade de material é traduzido imediatamente por uma **analogia cotidiana clara** conectada ao **benefício prático principal** na vida do comprador.
+- **Rigor factual:** toda afirmação, especificação, alerta e cobertura de variações essenciais decorre exclusivamente do que foi verificado em `produtos/<slug>/ficha.md`.
+- **Guia de ritmo e direção vocal:** alterne frases curtas de impacto com explicações fluidas (usando **`~15` palavras por frase** como referência de fôlego falado, calibrável por produto) e registre a intenção emocional entre colchetes por cena (ex.: `[intrigado → alívio prático]`).
+- **Área segura `9:16` (`1080×1920`):** mantenha todos os elementos críticos (produto, rosto do personagem, legendas e chamadas visuais) dentro de **`X = 48..887 px`**, **`Y = 288..1247 px`** (folga lateral esquerda recomendada **`X ≥ 65 px`** para compatibilidade com Reels).
+- **Legendas legíveis:** blocos curtos de **`1 a 3 palavras`** por batida na faixa **`Y = 1040–1220 px`**, com alto contraste e destaque na palavra tônica ativa (paleta definida pela direção de arte para o produto).
 
-## 2. Arquitetura Narrativa e Coreografia (`Produto Real ↔ Por Dentro ↔ Uso Real ↔ Produto Real`)
+---
 
-O episódio vertical (`~45–60s`) segue quatro batidas conectadas:
+## 2. Lentes Criativas de Episódio (escolhidas em coautoria)
 
-| Batida | Função dramática | Camada Narrativa (`@Carlos`) | Camada Visual (`@Steve`) |
+Em vez de um molde único, `@Carlos` e `@Steve` escolhem no Portão 2 a lente (ou combinação de lentes) que melhor valoriza o produto e prende a atenção nos primeiros `3s`:
+
+| Lente | Quando escolher | Abertura e jornada | Direção de arte (`@Steve`) |
 |---|---|---|---|
-| **1. Gancho & Dor Real (`0–3s`+)** | Deter a rolagem nos primeiros `3s` ligando uma dor cotidiana ao benefício principal do produto. | Pergunta ou contraste direto ao espectador. | Foto oficial nítida do produto real com intervenção do Inspetor (`Rig 2.5D`) acionando a transição (*scanner* / *cross-fade* alinhado) para o modo "Por Dentro". |
-| **2. Costura Causal ("Por Dentro": Raio-X 3D ou Processo)** | Responder diretamente ao gancho explicando *como* o mecanismo interno ou o processo de fabricação entrega o benefício. | Analogia cotidiana imediata + explicação causal conectada ao gancho. | Palco em tela cheia limpa (`Rig 2.5D` fora de quadro): modelo Raio-X 3D (`#00e5ff`) com **compartimentos fisicamente estanques** (fluidos/fluxos confinados ao seu duto/câmara, separados de eletrônica seca) ou diagramação animada em etapas de processo (ex.: sublimação/liofilização), guiada por `SCRIPT_BEATS`. |
-| **3. Uso Prático Real + Prova/Cuidado** | Provar o benefício funcionando na vida real e dar transparência sobre instalação, manutenção, composição ou variações. | Demonstração do benefício + alerta prático ou comparativo fiel a `ficha.md`. | Clipe/foto real do produto funcionando em uso prático (`flow_ia` ou ativo real verificado) pareado ao detalhe fotográfico da peça/ingrediente ou comparativo de variações essenciais. |
-| **4. Fechamento do *Loop* + CTA** | Fechar a pergunta do gancho reafirmando o benefício e orientar o próximo passo para todas as variações. | Síntese confiante + chamada compatível com a plataforma (sem preço variável/redirecionamento proibido no ML Clips). | Recomposição para a foto oficial real do produto, retorno do Inspetor (`Rig 2.5D`) em gesto de conclusão e pílula final com variações essenciais e código/CTA. |
+| **1. Engenharia / Raio-X 3D** | Eletroeletrônicos, ferramentas, mecânica ou produtos onde o valor está no mecanismo interno. | Pode abrir com dor cotidiana + transição para dentro, ou direto no corte interno. | Palco Raio-X (`#090a0f`, *Fresnel* `#00e5ff`), vistas explodidas e **compartimentos fisicamente estanques** (fluidos/fluxos confinados aos seus dutos, separados de partes secas). |
+| **2. Processo / "Como é Feito"** | Alimentos, insumos, materiais ou produtos cujo diferencial está na fabricação ou matéria-prima. | Abre na curiosidade sensorial/material ou no resultado final e explica as etapas-chave de transformação. | Paleta e diagramação orgânicas ao tema (antes/depois, macro de textura, fluxograma animado em etapas limpas, sem forçar estética de Raio-X ciano). |
+| **3. Teste Prático / Comparativo** | Itens de uso direto (casa, EDC, camping, jardinagem) onde o ganho é ergonômico, de resistência ou comparativo. | Pode abrir direto em **ação real extrema** nos `0–3s` ou em comparação A vs. B antes de explicar o porquê. | Foco em uso prático real (`flow_ia` ou ativo real), comparativos lado a lado e sobreposições limpas apenas onde ajudarem a leitura. |
 
-## 3. Palco `9:16`, Área Segura e HUD Minimalista
+---
 
-Parâmetros decididos em `0006` e `REQ-015` (fonte operacional única):
+## 3. Direção de Arte, HUD e Presença do Inspetor (`@Steve`)
 
-- **Resolução e proporção:** `1080×1920` (`9:16`), fundo de palco Raio-X em `#090a0f` com contorno *Fresnel* ciano `#00e5ff`.
-- **Área segura rígida:** **`X = 48..887 px`**, **`Y = 288..1247 px`** (adotando folga lateral esquerda recomendada **`X ≥ 65 px`** para compatibilidade com Reels).
-- **HUD Minimalista (máximo de 4 elementos simultâneos, todos em linguagem leiga):**
-  1. **Top bar discreta:** identificador curto (`• <PRODUTO>`) + badge contextual (`ilustrativo`, `corte 3D`, `uso real`).
-  2. **Leader lines (1 a 2 apontadores por cena):** linha fina ancorada na peça/etapa ativa com rótulo de **`1 a 3 palavras`** descrevendo a função prática.
-  3. **Pílula única de estado e benefício:** barra compacta na parte superior/média (`Y = 288..1020 px`) traduzindo o estado físico no benefício real.
-  4. **Legendas dinâmicas inferiores:** blocos curtos de **`1 a 3 palavras`** por batida na faixa **`Y = 1040–1220 px`**, fonte *bold* branca com contorno escuro nítido e palavra ativa destacada em amarelo (`#facc15`).
+- **HUD sob demanda (nunca por obrigação):** use apenas os elementos que ajudam o espectador a entender a cena (ex.: identificador discreto, `1 a 2` apontadores curtos de `1 a 3 palavras` ou pílula de benefício). Cenas de uso real podem rodar limpas apenas com a legenda dinâmica.
+- **Presença do Inspetor (`Rig 2.5D`):** livre para entrar na abertura, em PiP comentando um teste/processo, em reações pontuais ou no fechamento — sempre respeitando a área segura e sem cobrir o foco principal da cena.
+
+---
 
 ## 4. Motores Visuais por Natureza da Cena
 
-- **`Rig 2.5D`:** apresentador Inspetor Bicho Grilo com *lip-sync* determinístico PT-BR na abertura, reações pontuais e fechamento; cede a tela cheia nas cenas técnicas.
+- **`Rig 2.5D`:** apresentador Inspetor Bicho Grilo com *lip-sync* determinístico PT-BR.
 - **`Flow Omni 360p -> 1080p` (`flow_ia`):** cenas externas, atmosfera natural e uso prático real guiado por foto real do produto (`1 crédito/s` em `360p` até `10s`; *upscale* a `1080p` a `0` crédito até `10s`). Dispara aviso determinístico de IA (`REQ-007`).
-- **`Determinístico`:** mecanismos internos em Raio-X 3D, vistas explodidas, fluxogramas/processos de fabricação animados e comparativos técnicos via `Python (numpy/Pillow) + ffmpeg` (e estúdio interativo `Three.js` quando aplicável), ancorados nos ativos reais e diagramas de `ficha.md`.
+- **`Determinístico`:** visualizações 3D, vistas explodidas, processos animados, comparativos e composições via `Python (numpy/Pillow) + ffmpeg` (e estúdio interativo `Three.js` quando aplicável), ancorados nos ativos reais de `ficha.md`.
+
+---
 
 ## 5. Referências Externas de Qualidade
 
