@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vitrine Oficial — Inspetor Bicho Grilo</title>
+  <meta name="description" content="Vitrine de links verificados em Raio-X 3D pelo Inspetor Bicho Grilo. Busque pelo código do vídeo (ex.: IBG-001) ou pelo nome do produto." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <header class="brand">
+      <img class="avatar" src="avatar.png" alt="Inspetor Bicho Grilo" width="88" height="88" />
+      <div class="brand-text">
+        <h1>Inspetor Bicho Grilo</h1>
+        <p class="handle">@inspetorbichogrilo</p>
+        <p class="tagline">Engenharia em Raio-X 3D e links verificados por variação.</p>
+      </div>
+    </header>
+
+    <section class="search-box" aria-label="Buscar produto">
+      <label class="sr-only" for="search-input">Buscar por código curto (ex.: IBG-001) ou produto</label>
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Busque pelo código (ex.: IBG-001) ou nome do produto..."
+        autocomplete="off"
+      />
+      <p id="result-count" class="result-count" aria-live="polite"></p>
+    </section>
+
+    <section id="catalog" class="catalog" aria-label="Produtos verificados"></section>
+
+    <footer class="footer">
+      <p>Links selecionados manualmente a partir de especificações oficiais do fabricante. Como afiliado, podemos receber comissão sem custo extra para você.</p>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
