@@ -3,7 +3,7 @@
   "produtos": [
     {
       "codigo": "IBG-001",
-      "ativo": false,
+      "ativo": true,
       "titulo": "Ducha Eletrônica Zagonel ND Branco (127V e 220V)",
       "avaliacao": "4,8★ (3.152 aval.)",
       "resumo": "Regulador gradual eletrônico (dimmer TRIAC) em compartimento seco, tubo vedado com diafragma anti-queima e mesma resistência da antiga ND e Turbo.",
@@ -14,13 +14,13 @@
           "rotulo": "Versão 220V · 7700W (DNDEL77220BR03)",
           "loja": "Mercado Livre Oficial",
           "especificacao": "Cabo 6 mm² · Disjuntor 40 A",
-          "url": "https://www.mercadolivre.com.br/ducha-eletronica-zagonel-nd-7700w-branco/p/MLB47799834"
+          "url": "https://meli.la/1GvvxXr"
         },
         {
           "rotulo": "Versão 127V · 5500W (DNDEL55127BR03)",
           "loja": "Mercado Livre Oficial",
           "especificacao": "Cabo 10 mm² · Disjuntor 50 A",
-          "url": "https://www.mercadolivre.com.br/ducha-chuveiro-nd-eletronica-branco-5500w-zagonel/p/MLB47884399?product_trigger_id=MLB47884399&attributes=POWER%3A5.5%20kW%2CCOLOR%3ABranco%2CVOLTAGE%3AMLB47884399&picker=true"
+          "url": "https://meli.la/2kUbXEz"
         }
       ]
     }

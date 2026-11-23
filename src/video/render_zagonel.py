@@ -61,10 +61,10 @@ SCENES_SPEC: list[dict[str, Any]] = [
             "Abri em raio-x a clássica êne dê, da térmosístem e ídra, hoje da zagonél!"
         ),
         "phrase_replacements": [
-            ("êne dê", "ND,"),
+            ("êne dê", "ND"),
             ("térmosístem", "Thermosystem"),
-            ("ídra", "Hydra,"),
-            ("zagonél", "Zagonel!"),
+            ("ídra", "Hydra"),
+            ("zagonél", "Zagonel"),
         ],
     },
     {
@@ -139,7 +139,7 @@ SCENES_SPEC: list[dict[str, Any]] = [
         "phrase_replacements": [
             ("êne dê", "ND"),
             ("duzentos e vinte volts", "220V"),
-            ("cento e vinte e sete", "127."),
+            ("cento e vinte e sete", "127"),
             ("zagonél", "Zagonel"),
         ],
     },
@@ -165,9 +165,9 @@ SCENES_SPEC: list[dict[str, Any]] = [
         ),
         "phrase_replacements": [
             ("cento e vinte e sete", "127"),
-            ("duzentos e vinte volts", "220V?"),
-            ("bío", "bio,"),
-            ("zagonél", "ZAGONEL!"),
+            ("duzentos e vinte volts", "220V"),
+            ("bío", "bio"),
+            ("zagonél", "ZAGONEL"),
         ],
     },
 ]
@@ -212,7 +212,7 @@ def collapse_phonetic_words(
     raw_words: list[dict[str, Any]],
     replacements: list[tuple[str, str]],
 ) -> list[dict[str, Any]]:
-    """Collapse multi-word phonetic expansions back into clean technical display tokens."""
+    """Collapse multi-word phonetic expansions back into clean technical display tokens and normalize punctuation."""
     collapsed: list[dict[str, Any]] = []
     n = len(raw_words)
     i = 0
@@ -223,6 +223,16 @@ def collapse_phonetic_words(
     rep_seqs.sort(key=lambda item: len(item[0]), reverse=True)
 
     while i < n:
+        tok_raw = str(raw_words[i]["text"]).strip()
+        # Handle isolated punctuation tokens emitted by Azure Speech WordBoundary
+        if tok_raw and all(ch in ".,!?:;-…" for ch in tok_raw):
+            if any(ch in "?!" for ch in tok_raw) and collapsed:
+                punct = "?" if "?" in tok_raw else "!"
+                if not collapsed[-1]["text"].endswith(("?", "!")):
+                    collapsed[-1]["text"] = collapsed[-1]["text"].rstrip(".,:;") + punct
+            i += 1
+            continue
+
         matched = False
         for seq_tokens, display_tok in rep_seqs:
             k = len(seq_tokens)
@@ -244,9 +254,12 @@ def collapse_phonetic_words(
                     break
         if not matched:
             w = raw_words[i]
+            clean_tok = tok_raw.rstrip(".,:;")
+            if not clean_tok:
+                clean_tok = tok_raw
             collapsed.append(
                 {
-                    "text": str(w["text"]),
+                    "text": clean_tok,
                     "tts_text": str(w["text"]),
                     "start": round(float(w["start"]), 4),
                     "duration": round(float(w["duration"]), 4),
@@ -1591,6 +1604,20 @@ class ZagonelStageComposer:
             w=self.s(530),
             h=self.s(540),
         )
+        self.card_haste_zagonel_real = self._build_photo_thumb_card(
+            self.img_zagonel,
+            w=self.s(404),
+            h=self.s(510),
+            caption="ATUAL ZAGONEL · HASTE 100% BRANCA",
+            border_col=(0, 229, 255, 240),
+        )
+        self.card_haste_hydra_real = self._build_photo_thumb_card(
+            self.img_era2,
+            w=self.s(364),
+            h=self.s(460),
+            caption="ANTIGA HYDRA · ANEL COLORIDO",
+            border_col=(250, 204, 21, 235),
+        )
 
         # Pre-build circular optical loupes for Scene 04 part 2 (white collar vs old colored ring)
         self.loupe_white_collar = self._make_circular_loupe(
@@ -2279,14 +2306,19 @@ class ZagonelStageComposer:
         sc_prog = min(1.0, sc_elapsed / max(0.01, float(scene["duration"])))
 
         state_3d = self._compute_director_3d_state(sc_id, sc_prog)
-        canvas, anchors_2d = self.engine_3d.render_3d_stage(t=t, state=state_3d)
+        if sc_id == "04" and state_3d.get("show_collar_loupe", False):
+            # Prefer crisp real product photography over 3D when comparing the white rod vs old colored ring
+            canvas = Image.new("RGBA", (self.W, self.H), (8, 15, 28, 255))
+            anchors_2d = {}
+        else:
+            canvas, anchors_2d = self.engine_3d.render_3d_stage(t=t, state=state_3d)
         # Register 2D screen anchors for real photographic cards/loupes/video viewports
         anchors_2d["real_photo_neck"] = (self.s(565), self.s(455))
         anchors_2d["real_photo_rod"] = (self.s(516), self.s(735))
         anchors_2d["flow_video_jets"] = (self.s(620), self.s(510))
         anchors_2d["flow_video_rod"] = (self.s(482), self.s(685))
-        anchors_2d["loupe_zagonel_white"] = (self.s(710), self.s(585))
-        anchors_2d["loupe_hydra_ring"] = (self.s(725), self.s(760))
+        anchors_2d["loupe_zagonel_white"] = (self.s(275), self.s(680))
+        anchors_2d["loupe_hydra_ring"] = (self.s(680), self.s(690))
         draw = ImageDraw.Draw(canvas)
 
         # SCENE 01: Real Product Hero Photo (zagonel_oficial_nd.png) + Historical Era Badges -> Laser X-Ray Scanner Transition
@@ -2372,9 +2404,13 @@ class ZagonelStageComposer:
                         ry0 + self.card_resistencia_real.height,
                     )
             else:
-                lx0, ly0 = self.s(688), self.s(510)
+                zx0, zy0 = self.s(72), self.s(395)
+                canvas.alpha_composite(self.card_haste_zagonel_real, (zx0, zy0))
+                ax0, ay0 = self.s(498), self.s(420)
+                canvas.alpha_composite(self.card_haste_hydra_real, (ax0, ay0))
+                lx0, ly0 = self.s(310), self.s(720)
                 canvas.alpha_composite(self.loupe_white_collar, (lx0, ly0))
-                hx0, hy0 = self.s(708), self.s(695)
+                hx0, hy0 = self.s(716), self.s(718)
                 canvas.alpha_composite(self.loupe_old_hydra, (hx0, hy0))
                 d_rad = self.loupe_old_hydra.width
                 draw.line(
@@ -2385,11 +2421,11 @@ class ZagonelStageComposer:
                 if record_audit:
                     self.record_box_1080(
                         "04",
-                        "Loupe_Haste_Branca_vs_Antiga",
-                        lx0,
-                        ly0,
-                        lx0 + self.loupe_white_collar.width,
-                        hy0 + self.loupe_old_hydra.height,
+                        "Comparativo_Real_Haste_Branca_vs_Antiga",
+                        zx0,
+                        zy0,
+                        ax0 + self.card_haste_hydra_real.width,
+                        zy0 + self.card_haste_zagonel_real.height,
                     )
 
         # SCENE 05: Reassembly -> Dual Real Product Showcase Card (zagonel_oficial_nd.png + zagonel_nd_uso_real.png) on center-right
