@@ -41,12 +41,6 @@ Parâmetros decididos em `0006` e `REQ-015` (fonte operacional única):
 - **`Flow Omni 360p -> 1080p` (`flow_ia`):** cenas externas, atmosfera natural e uso prático real guiado por foto real do produto (`1 crédito/s` em `360p` até `10s`; *upscale* a `1080p` a `0` crédito até `10s`). Dispara aviso determinístico de IA (`REQ-007`).
 - **`Determinístico`:** mecanismos internos em Raio-X 3D, vistas explodidas, fluxogramas/processos de fabricação animados e comparativos técnicos via `Python (numpy/Pillow) + ffmpeg` (e estúdio interativo `Three.js` quando aplicável), ancorados nos ativos reais e diagramas de `ficha.md`.
 
-## 5. Quadros de Referência Aprovados (Baseline Zagonel ND)
+## 5. Referências Externas de Qualidade
 
-Os quadros em `referencias/` ilustram a estética base de composição vertical, HUD minimalista, Raio-X 3D e integração com fotos reais (observando as lições já incorporadas nesta bíblia: evitar jargão técnico solto no HUD, manter fluxos confinados às câmaras estanques e garantir presença de uso real):
-
-- **Abertura e transição Real → Raio-X 3D:** [keyframe_cena01.png](referencias/keyframe_cena01.png)
-- **Macro do mecanismo interno + uso real:** [keyframe_cena02.png](referencias/keyframe_cena02.png)
-- **Corte seccional 3D em tela cheia limpa:** [keyframe_cena03.png](referencias/keyframe_cena03.png)
-- **Peça real pareada ao detalhe interno e variações:** [keyframe_cena04.png](referencias/keyframe_cena04.png) e [keyframe_cena04_passo2.png](referencias/keyframe_cena04_passo2.png)
-- **Fechamento com produto real, Inspetor e CTA:** [keyframe_cena05.png](referencias/keyframe_cena05.png)
+As referências visuais de qualidade desta bíblia devem vir exclusivamente de referências externas aprovadas pelo usuário (não de entregas internas ainda em calibração). Esta seção permanece aberta para catalogar os quadros e links externos de referência conforme forem selecionados.
