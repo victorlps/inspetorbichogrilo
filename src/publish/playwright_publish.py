@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Page, expect, sync_playwright
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PW_PROFILE_DIR = Path.home() / ".cache" / "inspetorbichogrilo-pw-profile"
@@ -187,22 +187,33 @@ def publish_instagram(page: Page, meta: PacoteMetadata, do_publish: bool = False
     caption_box.click()
     caption_box.fill(meta.instagram_caption)
     if do_publish:
+        # Wait for video upload/processing to finish before advancing
         for _ in range(2):
             next_btn = page.locator(
-                'div[role="button"]:has-text("Avançar"), button:has-text("Avançar"), '
-                'div[role="button"]:has-text("Next"), button:has-text("Next")'
+                'div[role="button"]:has-text("Avançar"):not([aria-disabled="true"]), '
+                'button:has-text("Avançar"):not([disabled]), '
+                'div[role="button"]:has-text("Next"):not([aria-disabled="true"]), '
+                'button:has-text("Next"):not([disabled])'
             ).first
-            if next_btn.count() > 0 and next_btn.is_visible():
+            try:
+                next_btn.wait_for(state="visible", timeout=60000)
                 next_btn.click()
-                time.sleep(1.5)
+                time.sleep(2.0)
+            except Exception:
+                break
+
         share_btn = page.locator(
-            'div[role="button"]:has-text("Compartilhar"), button:has-text("Compartilhar"), '
-            'div[role="button"]:has-text("Publicar"), button:has-text("Publicar"), '
-            'div[role="button"]:has-text("Share"), button:has-text("Share")'
-        ).first
-        if share_btn.count() > 0 and share_btn.is_visible():
-            share_btn.click()
-            print("[Instagram/Meta] Clique em Compartilhar/Publicar enviado!")
+            'div[role="button"]:has-text("Compartilhar"):not([aria-disabled="true"]), '
+            'button:has-text("Compartilhar"):not([disabled]), '
+            'div[role="button"]:has-text("Publicar"):not([aria-disabled="true"]), '
+            'button:has-text("Publicar"):not([disabled]), '
+            'div[role="button"]:has-text("Share"):not([aria-disabled="true"]), '
+            'button:has-text("Share"):not([disabled])'
+        ).last
+        share_btn.wait_for(state="visible", timeout=90000)
+        share_btn.click()
+        print("[Instagram/Meta] Clique em Compartilhar/Publicar enviado! Aguardando confirmação...")
+        time.sleep(12.0)
     else:
         print("[Instagram/Meta] Legenda preenchida. Revise o rótulo de IA (REQ-007) e publique.")
 
@@ -264,10 +275,12 @@ def publish_tiktok(page: Page, meta: PacoteMetadata, do_publish: bool = False) -
     caption_box.fill(meta.tiktok_caption[:2200])
 
     if do_publish:
-        post_btn = page.locator('button:has-text("Publicar"), button:has-text("Post")').last
-        if post_btn.count() > 0 and post_btn.is_visible():
-            post_btn.click()
-            print("[TikTok] Clique em Publicar enviado!")
+        post_btn = page.locator('button[data-e2e="post_video_button"], button:has-text("Publicar"), button:has-text("Post")').last
+        post_btn.wait_for(state="visible", timeout=60000)
+        expect(post_btn).to_be_enabled(timeout=90000)
+        post_btn.click()
+        print("[TikTok] Clique em Publicar enviado! Aguardando confirmação...")
+        time.sleep(10.0)
     else:
         print("[TikTok] Legenda preenchida. Confira a chave 'Conteúdo gerado por IA' (REQ-007).")
 
