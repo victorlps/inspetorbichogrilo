@@ -1,0 +1,110 @@
+{
+  "slug": "fruta-liofilizada-davida",
+  "title": "Como Funciona uma Fruta Liofilizada? (E Por Que Ela Brilha nas Montanhas)",
+  "vitrine_code": "IBG-002",
+  "fps": 24,
+  "voice": "pt-BR-AntonioNeural",
+  "theme": {
+    "accent": "#34d399",
+    "highlight": "#facc15"
+  },
+  "phonetic_replacements": [
+    ["da vida", "daVIDA"],
+    ["í bê gê zero zero dois", "IBG-002"],
+    ["vitamina cê", "vitamina C"],
+    ["noventa por cento", "90%"],
+    ["quarenta graus negativos", "-40 °C"],
+    ["cento e noventa e oito gramas", "198 g"],
+    ["quinze gramas", "15 g"]
+  ],
+  "scenes": [
+    {
+      "id": "01",
+      "motor": "Determinístico + Rig 2.5D",
+      "sim": "water_vs_sponge",
+      "rate": "+9%",
+      "tail_pad_s": 0.30,
+      "pill_text": "O QUE É?",
+      "show_rig": true,
+      "actions": [
+        [0.0, "inspecao_lupa"],
+        [0.55, "apontar_produto"]
+      ],
+      "data": {
+        "macro_image": "davida_morango_macro_textura.png"
+      },
+      "tts_text": "Já mordeu um morango seco que estala na boca e derrete na língua? Isso é fruta liofilizada: a fruta inteira com noventa por cento menos água. Ela mantém o formato original, a cor viva e os nutrientes naturais."
+    },
+    {
+      "id": "02",
+      "motor": "Determinístico",
+      "sim": "freezing_cells",
+      "rate": "+8%",
+      "tail_pad_s": 0.32,
+      "pill_text": "ETAPA 1 · FRIO",
+      "show_rig": false,
+      "data": {},
+      "tts_text": "Como ela é fabricada? Em vez de forno, começa num frio extremo. A quarenta graus negativos, a água congela rápido em microcristais bem finos. Esses cristais viram um esqueleto interno que protege cada parede celular."
+    },
+    {
+      "id": "03",
+      "motor": "Determinístico",
+      "sim": "vacuum_sublimation",
+      "rate": "+8%",
+      "tail_pad_s": 0.32,
+      "pill_text": "ETAPA 2 · VÁCUO",
+      "show_rig": false,
+      "data": {},
+      "tts_text": "Depois, bombas criam alto vácuo, abaixo do ponto triplo da água. Nessa pressão, água líquida não existe: o gelo vira vapor direto. Sem líquido puxando as fibras, sobra uma esponja seca cheia de poros."
+    },
+    {
+      "id": "04",
+      "motor": "Determinístico + Rig 2.5D",
+      "sim": "three_techniques",
+      "rate": "+8%",
+      "tail_pad_s": 0.30,
+      "pill_text": "COMPARATIVO",
+      "show_rig": true,
+      "actions": [
+        [0.0, "analitico"],
+        [0.62, "apontar_produto"]
+      ],
+      "data": {},
+      "tts_text": "Veja a diferença para as outras técnicas de secagem. Na estufa quente, o calor encolhe a fruta e reduz a vitamina cê. Nos chips fritos a vácuo, o óleo entra nos poros. Já na liofilização, fica só fruta."
+    },
+    {
+      "id": "05",
+      "motor": "Flow Omni 360p -> 1080p (flow_ia) + Determinístico",
+      "sim": "mountain_scale",
+      "use_flow_bg": true,
+      "flow_video_1080p": "assets/flow_trilha_1080p.mp4",
+      "flow_audio_source": "assets/flow_trilha_360p.mp4",
+      "flow_slowmo": 1.85,
+      "rate": "+9%",
+      "tail_pad_s": 0.30,
+      "pill_text": "NA MONTANHA",
+      "show_rig": false,
+      "data": {},
+      "tts_text": "Por isso ela brilha em caminhadas longas nas montanhas. Fruta fresca carrega peso morto de água, amassa na mochila e fermenta. Sem água, cento e noventa e oito gramas viram quinze gramas de energia rápida."
+    },
+    {
+      "id": "06",
+      "motor": "Determinístico + Rig 2.5D",
+      "sim": "exemplar_pouch",
+      "rate": "+9%",
+      "tail_pad_s": 0.36,
+      "pill_text": "EXEMPLAR REAL",
+      "show_rig": true,
+      "actions": [
+        [0.0, "apontar_produto"],
+        [0.42, "lanterna_on"],
+        [0.76, "toque_chapeu"]
+      ],
+      "data": {
+        "pouch_image": "davida_morango_pouch.png",
+        "vitrine_code": "Bio · IBG-002"
+      },
+      "tts_text": "Um exemplo real pra trilha é esse sachê da vida, feito só de fruta. Como a esponja seca puxa umidade do ar, abriu na serra, coma na hora. Os detalhes estão no código í bê gê zero zero dois na bio."
+    }
+  ]
+}

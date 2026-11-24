@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    color: #f8fafc;
+    -webkit-font-smoothing: antialiased;
+  }
+  #bg-layer {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+  }
+  #bg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 1080px;
+    height: 1920px;
+  }
+
+  /* Strict Safe Zone: X = 66..884 (width 818), Y = 294..1244 (height 950) */
+  #safe-stage {
+    position: absolute;
+    left: 66px;
+    top: 294px;
+    width: 818px;
+    height: 950px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Minimal Context Pill (1 to 3 words max) */
+  #top-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    align-self: flex-start;
+    max-width: 818px;
+    background: rgba(8, 15, 23, 0.86);
+    border: 2px solid var(--accent, #34d399);
+    border-radius: 999px;
+    padding: 9px 22px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.46);
+  }
+  #top-pill .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent, #34d399);
+    box-shadow: 0 0 12px var(--accent, #34d399);
+    flex-shrink: 0;
+  }
+  #top-pill .pill-txt {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #f0fdf4;
+    white-space: nowrap;
+  }
+
+  /* Open Visual Simulation Stage: Y = 356..928 when Rig visible (572px), or Y = 356..1036 when Rig hidden (680px) */
+  #content-zone {
+    position: relative;
+    margin-top: 12px;
+    width: 818px;
+    height: 572px;
+  }
+  #content-zone.tall {
+    height: 680px;
+  }
+  #sim-canvas {
+    width: 818px;
+    height: 100%;
+    display: block;
+  }
+
+  /* Bottom Band: Inspector Rig PiP + Dynamic Captions (Caption strictly inside Y = 1040..1220, Rig <= 1244) */
+  #bottom-band {
+    position: absolute;
+    left: 66px;
+    top: 938px;
+    width: 818px;
+    height: 306px;
+    pointer-events: none;
+  }
+
+  #inspector-rig {
+    position: absolute;
+    left: 0px;
+    bottom: 6px;
+    width: 218px;
+    height: 288px;
+    background: radial-gradient(circle at 50% 42%, rgba(27, 67, 50, 0.90), rgba(9, 15, 22, 0.95));
+    border: 2.5px solid rgba(52, 211, 153, 0.62);
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.62);
+  }
+  #inspector-rig img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Caption strictly inside Y = 1054..1212 (within 1040..1220 safe caption band) */
+  #caption-box {
+    position: absolute;
+    left: 234px;
+    top: 116px; /* 938 + 116 = 1054 px */
+    width: 584px;
+    min-height: 106px;
+    max-height: 158px; /* 1054 + 158 = 1212 px <= 1220 px */
+    background: rgba(8, 12, 20, 0.90);
+    border: 2px solid rgba(250, 204, 21, 0.50);
+    border-radius: 24px;
+    padding: 16px 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.60);
+  }
+  #caption-box.full-width {
+    left: 24px;
+    width: 770px;
+  }
+  .cap-word {
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1.12;
+    color: #ffffff;
+    display: inline-block;
+  }
+  .cap-word.active {
+    color: #facc15;
+    text-decoration: underline;
+    text-underline-offset: 7px;
+    text-decoration-thickness: 4px;
+    transform: scale(1.06);
+  }
+</style>
+</head>
+<body>
+  <div id="bg-layer">
+    <canvas id="bg-canvas" width="1080" height="1920"></canvas>
+  </div>
+
+  <div id="safe-stage">
+    <div id="top-pill">
+      <div class="dot"></div>
+      <span class="pill-txt" id="pill-text"></span>
+    </div>
+    <div id="content-zone">
+      <canvas id="sim-canvas" width="818" height="572"></canvas>
+    </div>
+  </div>
+
+  <div id="bottom-band">
+    <div id="inspector-rig">
+      <img id="rig-torso-torso_neutro" src="" alt="" />
+      <img id="rig-torso-torso_apontar" src="" alt="" style="display:none" />
+      <img id="rig-torso-torso_toque_chapeu" src="" alt="" style="display:none" />
+      <div id="rig-head-grp" style="position:absolute;inset:0;transform-origin:48% 49.5%">
+        <img id="rig-cabeca" src="" alt="" />
+        <img id="rig-olhos-dir" src="" alt="" style="display:none" />
+        <img id="rig-blink-meio" src="" alt="" style="display:none" />
+        <img id="rig-blink-fechado" src="" alt="" style="display:none" />
+        <img id="rig-brow-l" src="" alt="" style="transform-origin:33% 26.2%" />
+        <img id="rig-brow-r" src="" alt="" style="transform-origin:54.7% 26.2%" />
+        <img id="rig-vis-X" src="" alt="" />
+        <img id="rig-vis-BMP" src="" alt="" style="display:none" />
+        <img id="rig-vis-FV" src="" alt="" style="display:none" />
+        <img id="rig-vis-EI" src="" alt="" style="display:none" />
+        <img id="rig-vis-A" src="" alt="" style="display:none" />
+        <img id="rig-vis-OU" src="" alt="" style="display:none" />
+        <img id="rig-vis-SORRISO" src="" alt="" style="display:none" />
+        <img id="rig-ant-l" src="" alt="" style="transform-origin:37.5% 18.2%" />
+        <img id="rig-ant-r" src="" alt="" style="transform-origin:54.9% 18.2%" />
+        <img id="rig-beam" src="" alt="" style="display:none;transform-origin:37% 16.5%" />
+        <img id="rig-lanterna" src="" alt="" style="transform-origin:37% 16.5%" />
+        <img id="rig-lupa" src="" alt="" style="transform-origin:63.8% 15%" />
+      </div>
+      <img id="rig-fg-arm" src="" alt="" style="display:none" />
+    </div>
+    <div id="caption-box"></div>
+  </div>
+
+<script>
+window.__EPISODE = null;
+window.__IMAGES = {};
+window.__CURRENT_LABELS = [];
+let lastSceneId = null;
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function lerp(a, b, t) { return a + (b - a) * clamp(t, 0, 1); }
+function smoothstep(e0, e1, x) {
+  const t = clamp((x - e0) / Math.max(0.0001, e1 - e0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+function spring(framesElapsed, damping = 8.0, freq = 9.2) {
+  if (framesElapsed <= 0) return 0;
+  const t = framesElapsed / 24.0;
+  return 1 - Math.exp(-damping * t) * Math.cos(freq * t);
+}
+
+const RIG_ACTIONS = {
+  neutro: { torso: "torso_neutro", lupa: 0, lanterna: 0, beam: false, brow: "neutro", look: "camera", fg: null },
+  inspecao_lupa: { torso: "torso_apontar", lupa: 18, lanterna: 4, beam: false, brow: "analitico", look: "direita", fg: null },
+  lanterna_on: { torso: "torso_neutro", lupa: -4, lanterna: -10, beam: true, brow: "alerta", look: "camera", fg: null },
+  analitico: { torso: "torso_neutro", lupa: -15, lanterna: 5, beam: false, brow: "analitico", look: "direita", fg: null },
+  apontar_produto: { torso: "torso_apontar", lupa: -10, lanterna: 2, beam: false, brow: "neutro", look: "direita", fg: null },
+  toque_chapeu: { torso: "torso_toque_chapeu", lupa: 8, lanterna: 6, beam: false, brow: "neutro", look: "camera", fg: "braco_toque_chapeu" }
+};
+
+/* Precompute hexagonal cellular grid for strawberry microscopy & sublimation */
+const HEX_CELLS = [];
+(function buildHexGrid() {
+  const rings = [
+    [[0, 0]],
+    [[1,0],[0.5,0.866],[-0.5,0.866],[-1,0],[-0.5,-0.866],[0.5,-0.866]],
+    [[2,0],[1.5,0.866],[1,1.732],[0,1.732],[-1,1.732],[-1.5,0.866],[-2,0],[-1.5,-0.866],[-1,-1.732],[0,-1.732],[1,-1.732],[1.5,-0.866]]
+  ];
+  let idx = 0;
+  for (let r = 0; r < rings.length; r++) {
+    for (const [gx, gy] of rings[r]) {
+      HEX_CELLS.push({ gx, gy, ring: r, seed: idx * 1.37 + 0.4 });
+      idx++;
+    }
+  }
+})();
+
+window.__initEpisode = async function(ep) {
+  window.__EPISODE = ep;
+  const rigUri = ep.rig_base_uri;
+  const toLoad = [];
+
+  const setImg = (id, url) => {
+    const el = document.getElementById(id);
+    el.src = url;
+    toLoad.push(el.decode ? el.decode().catch(() => {}) : Promise.resolve());
+  };
+
+  for (const tKey of ["torso_neutro", "torso_apontar", "torso_toque_chapeu"]) {
+    setImg("rig-torso-" + tKey, rigUri + "/" + tKey + ".png");
+  }
+  setImg("rig-cabeca", rigUri + "/cabeca_base.png");
+  setImg("rig-olhos-dir", rigUri + "/olhos_direita.png");
+  setImg("rig-blink-meio", rigUri + "/olhos_meio.png");
+  setImg("rig-blink-fechado", rigUri + "/olhos_fechado.png");
+  setImg("rig-brow-l", rigUri + "/sobrancelha_esq.png");
+  setImg("rig-brow-r", rigUri + "/sobrancelha_dir.png");
+  for (const vKey of ["X", "BMP", "FV", "EI", "A", "OU", "SORRISO"]) {
+    setImg("rig-vis-" + vKey, rigUri + "/visemas/visema_" + vKey + ".png");
+  }
+  setImg("rig-ant-l", rigUri + "/antena_esq.png");
+  setImg("rig-ant-r", rigUri + "/antena_dir.png");
+  setImg("rig-beam", rigUri + "/feixe_lanterna.png");
+  setImg("rig-lanterna", rigUri + "/haste_lanterna.png");
+  setImg("rig-lupa", rigUri + "/haste_lupa.png");
+  setImg("rig-fg-arm", rigUri + "/braco_toque_chapeu.png");
+
+  // Preload all scene asset images into window.__IMAGES for instant synchronous Canvas 2D drawing
+  const assetFiles = new Set();
+  for (const sc of (ep.scenes || [])) {
+    const d = sc.data || {};
+    for (const k of ["macro_image", "pouch_image", "image", "secondary_image"]) {
+      if (d[k]) assetFiles.add(d[k]);
+    }
+    if (sc.bg_image) assetFiles.add(sc.bg_image);
+  }
+  for (const fname of assetFiles) {
+    const im = new Image();
+    im.src = ep.assets_base_uri + "/" + fname;
+    window.__IMAGES[fname] = im;
+    toLoad.push(im.decode ? im.decode().catch(() => {}) : Promise.resolve());
+  }
+
+  if (ep.theme) {
+    document.documentElement.style.setProperty("--accent", ep.theme.accent || "#34d399");
+    document.documentElement.style.setProperty("--highlight", ep.theme.highlight || "#fbbf24");
+  }
+  await Promise.all(toLoad);
+  lastSceneId = null;
+};
+
+/* --- Reusable Canvas Drawing Helpers --- */
+function roundRectPath(ctx, x, y, w, h, r) {
+  const rad = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  if (ctx.roundRect) {
+    ctx.roundRect(x, y, w, h, rad);
+  } else {
+    ctx.moveTo(x + rad, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rad);
+    ctx.arcTo(x + w, y + h, x, y + h, rad);
+    ctx.arcTo(x, y + h, x, y, rad);
+    ctx.arcTo(x, y, x + w, y, rad);
+    ctx.closePath();
+  }
+}
+
+function drawSpatialTag(ctx, tagX, tagY, anchorX, anchorY, text, color = "#34d399", alpha = 1.0) {
+  if (alpha <= 0.02 || !text) return;
+  window.__CURRENT_LABELS.push(text);
+  ctx.save();
+  ctx.globalAlpha = clamp(alpha, 0, 1);
+  ctx.font = "800 22px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+  const padX = 16;
+  const tw = ctx.measureText(text).width;
+  const bw = tw + padX * 2;
+  const bh = 42;
+  const bx = clamp(tagX - bw / 2, 8, ctx.canvas.width - bw - 8);
+  const by = clamp(tagY - bh / 2, 8, ctx.canvas.height - bh - 8);
+
+  if (anchorX !== null && anchorY !== null) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.6;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(bx + bw / 2, by + bh / 2);
+    ctx.lineTo(anchorX, anchorY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(anchorX, anchorY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#081018";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  roundRectPath(ctx, bx, by, bw, bh, 999);
+  ctx.fillStyle = "rgba(8, 14, 22, 0.90)";
+  ctx.fill();
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+
+  ctx.fillStyle = "#f8fafc";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, bx + bw / 2, by + bh / 2 + 1);
+  ctx.restore();
+}
+
+function drawStrawberryShape(ctx, cx, cy, scale, crimp = 0, colorTop = "#f43f5e", colorBot = "#be123c", porous = 0) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale * (1 - crimp * 0.34), scale * (1 - crimp * 0.40));
+
+  // Leafy green calyx crown
+  ctx.fillStyle = lerpColor("#22c55e", "#4d7c0f", crimp);
+  for (let i = -2; i <= 2; i++) {
+    ctx.save();
+    ctx.translate(i * 18, -112 + Math.abs(i) * 4);
+    ctx.rotate(i * 0.32);
+    ctx.beginPath();
+    ctx.ellipse(0, -14, 11, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Heart-shaped strawberry body with optional thermal wrinkling
+  ctx.beginPath();
+  const steps = 48;
+  for (let i = 0; i <= steps; i++) {
+    const ang = (i / steps) * Math.PI * 2;
+    const sinA = Math.sin(ang);
+    const cosA = Math.cos(ang);
+    // Classic botanical strawberry profile
+    let rx = 98 * (0.76 - 0.24 * cosA);
+    let ry = 116;
+    const wrinkle = crimp * 8 * Math.sin(ang * 7 + 1.1);
+    const px = sinA * (rx + wrinkle);
+    const py = -cosA * (ry + wrinkle) + (cosA < 0 ? 12 * (-cosA) : 0);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+
+  const grad = ctx.createRadialGradient(0, -24, 14, 0, 12, 128);
+  grad.addColorStop(0, porous > 0.4 ? "#fb7185" : colorTop);
+  grad.addColorStop(0.65, colorBot);
+  grad.addColorStop(1, crimp > 0.4 ? "#451a03" : "#881337");
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = crimp > 0.4 ? "#78350f" : "#fda4af";
+  ctx.stroke();
+
+  // Inner pale vascular core
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 38 * (1 - crimp * 0.3), 62 * (1 - crimp * 0.3), 0, 0, Math.PI * 2);
+  ctx.fillStyle = crimp > 0.4 ? "rgba(120,53,15,0.45)" : "rgba(255,228,230,0.52)";
+  ctx.fill();
+
+  // Porous honeycomb cavities when freeze-dried
+  if (porous > 0.05) {
+    ctx.save();
+    ctx.globalAlpha = porous * 0.85;
+    for (let ring = 1; ring <= 3; ring++) {
+      const cnt = ring * 6;
+      for (let k = 0; k < cnt; k++) {
+        const a = (k / cnt) * Math.PI * 2 + ring * 0.4;
+        const px = Math.sin(a) * ring * 21 * 0.85;
+        const py = -Math.cos(a) * ring * 25 + 6;
+        ctx.beginPath();
+        ctx.arc(px, py, 5.2, 0, Math.PI * 2);
+        ctx.fillStyle = "#4c0519";
+        ctx.fill();
+        ctx.strokeStyle = "#fecdd3";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function lerpColor(hex1, hex2, t) {
+  const c1 = parseInt(hex1.slice(1), 16);
+  const c2 = parseInt(hex2.slice(1), 16);
+  const r = Math.round(lerp((c1 >> 16) & 255, (c2 >> 16) & 255, t));
+  const g = Math.round(lerp((c1 >> 8) & 255, (c2 >> 8) & 255, t));
+  const b = Math.round(lerp(c1 & 255, c2 & 255, t));
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawHexagon(ctx, cx, cy, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i - Math.PI / 6;
+    const x = cx + Math.cos(a) * r;
+    const y = cy + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
+
+function drawIceCrystal(ctx, cx, cy, r, rot = 0) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.strokeStyle = "#e0f2fe";
+  ctx.lineWidth = 2.6;
+  ctx.lineCap = "round";
+  for (let i = 0; i < 3; i++) {
+    const a = (Math.PI / 3) * i;
+    ctx.beginPath();
+    ctx.moveTo(-Math.cos(a) * r, -Math.sin(a) * r);
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    ctx.stroke();
+    // Crystal branches
+    for (const dir of [-1, 1]) {
+      const bx = Math.cos(a) * r * 0.58 * dir;
+      const by = Math.sin(a) * r * 0.58 * dir;
+      for (const side of [-0.55, 0.55]) {
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx + Math.cos(a + side) * r * 0.32 * dir, by + Math.sin(a + side) * r * 0.32 * dir);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+/* --- Background Atmosphere Renderer --- */
+function renderBackground(ep, sc, t) {
+  const bgLayer = document.getElementById("bg-layer");
+  if (ep.transparent_overlay && sc.use_flow_bg) {
+    bgLayer.style.display = "none";
+    return;
+  }
+  bgLayer.style.display = "block";
+  const canvas = document.getElementById("bg-canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, 1080, 1920);
+
+  const sim = sc.sim || "";
+  if (sim === "mountain_scale") {
+    // Scenic procedural sunrise mountain ridge for deterministic/ML-Clips mode
+    const sky = ctx.createLinearGradient(0, 0, 0, 1920);
+    sky.addColorStop(0, "#0f172a");
+    sky.addColorStop(0.38, "#1e3a5f");
+    sky.addColorStop(0.68, "#d97706");
+    sky.addColorStop(1, "#090f15");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Golden sun glow
+    const sun = ctx.createRadialGradient(280, 760, 20, 280, 760, 420);
+    sun.addColorStop(0, "rgba(253, 224, 71, 0.55)");
+    sun.addColorStop(1, "rgba(253, 224, 71, 0)");
+    ctx.fillStyle = sun;
+    ctx.fillRect(0, 300, 1080, 960);
+
+    // Layered Mantiqueira ridges
+    const layers = [
+      { y: 980, amp: 130, col: "rgba(30, 41, 59, 0.82)", ph: 0.4 },
+      { y: 1140, amp: 110, col: "rgba(15, 23, 42, 0.92)", ph: 1.7 },
+      { y: 1320, amp: 85, col: "#070d12", ph: 2.9 }
+    ];
+    for (const L of layers) {
+      ctx.beginPath();
+      ctx.moveTo(0, 1920);
+      for (let x = 0; x <= 1080; x += 36) {
+        const y = L.y - Math.sin(x * 0.0045 + L.ph) * L.amp - Math.cos(x * 0.011 + t * 0.12) * 28;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(1080, 1920);
+      ctx.closePath();
+      ctx.fillStyle = L.col;
+      ctx.fill();
+    }
+    return;
+  }
+
+  // Scientific Dark Botanical / Cryo Studio Backdrop
+  const g = ctx.createRadialGradient(480, 580, 60, 540, 960, 1180);
+  if (sim === "freezing_cells" || sim === "vacuum_sublimation") {
+    g.addColorStop(0, "#0f2942");
+    g.addColorStop(0.55, "#081624");
+    g.addColorStop(1, "#04090f");
+  } else {
+    g.addColorStop(0, "#16352b");
+    g.addColorStop(0.58, "#0a1918");
+    g.addColorStop(1, "#050a0d");
+  }
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  // Subtle drifting ambient grid dots
+  ctx.fillStyle = "rgba(148, 163, 184, 0.08)";
+  for (let gx = 90; gx < 1020; gx += 90) {
+    for (let gy = 260; gy < 1400; gy += 90) {
+      ctx.beginPath();
+      ctx.arc(gx, gy + Math.sin(t * 0.8 + gx * 0.01) * 4, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+/* --- 6 Continuous Physical Simulations (Estado A -> Ação Física -> Estado B) --- */
+
+// SCENE 1: What is freeze-dried fruit? (Immediate dual visual hook at t=0.0s: juicy berry losing 90% water + real crispy porous macro loupe!)
+function simWaterVsSponge(ctx, W, H, p, t, sc) {
+  const dewater = smoothstep(0.06, 0.68, p);
+  const loupePop = clamp(spring(Math.round(p * sc.duration * 24) + 6), 0.88, 1.03);
+
+  // Left-Center: Larger Strawberry cross-section undergoing water extraction WITHOUT shrinking
+  const sx = 212, sy = 290;
+  const halo = ctx.createRadialGradient(sx, sy, 24, sx, sy, 205);
+  halo.addColorStop(0, "rgba(244, 63, 94, 0.34)");
+  halo.addColorStop(1, "rgba(244, 63, 94, 0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath(); ctx.arc(sx, sy, 205, 0, Math.PI * 2); ctx.fill();
+
+  drawStrawberryShape(ctx, sx, sy, 1.46, 0, "#fb7185", "#e11d48", dewater);
+
+  // 36 liquid water droplets lifting out right from t=0.0s so muted viewers see immediate action!
+  for (let i = 0; i < 36; i++) {
+    const seed = i * 2.13;
+    const dp = (t * 0.52 + (i % 12) * 0.083) % 1.0;
+    const rBase = (i % 5) * 17;
+    const startX = sx + Math.sin(seed * 3.1) * rBase * 1.15;
+    const startY = sy + Math.cos(seed * 2.3) * (rBase * 1.4) + 8;
+    const curX = startX + Math.sin(t * 2.8 + seed) * (8 + dp * 26);
+    const curY = startY - dp * 230;
+    const alpha = Math.sin(dp * Math.PI) * 0.92;
+
+    if (alpha > 0.04) {
+      ctx.save();
+      ctx.globalAlpha = clamp(alpha, 0, 1);
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.arc(curX, curY, 6.5 * (1 - dp * 0.32), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#e0f2fe";
+      ctx.beginPath();
+      ctx.arc(curX - 2, curY - 2, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Vitamin C glowing green spheres staying locked inside the strawberry
+  for (let v = 0; v < 9; v++) {
+    const va = (v / 9) * Math.PI * 2 + 0.3;
+    const vr = 38 + (v % 2) * 30;
+    const vx = sx + Math.sin(va) * vr;
+    const vy = sy - Math.cos(va) * vr * 1.1 + Math.sin(t * 3 + v) * 2;
+    ctx.fillStyle = "#4ade80";
+    ctx.shadowColor = "#4ade80";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(vx, vy, 5.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  // Animated flow arrow + Real Macro Porous Texture visible right from 0.0s!
+  ctx.save();
+  ctx.strokeStyle = "#facc15";
+  ctx.lineWidth = 4.5;
+  ctx.lineDashOffset = -t * 28;
+  ctx.setLineDash([9, 6]);
+  ctx.beginPath();
+  ctx.moveTo(sx + 144, sy);
+  ctx.lineTo(418, sy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  const lx = 602, ly = 288, lr = 176 * loupePop;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(lx, ly, lr, 0, Math.PI * 2);
+  ctx.clip();
+  const macroImg = window.__IMAGES["davida_morango_macro_textura.png"];
+  if (macroImg && macroImg.complete) {
+    const zoom = 1.06 + 0.20 * Math.sin(t * 0.55);
+    const dw = lr * 2 * zoom;
+    ctx.drawImage(macroImg, lx - dw / 2, ly - dw / 2, dw, dw);
+  }
+  const glass = ctx.createLinearGradient(lx - lr, ly - lr, lx + lr, ly + lr);
+  glass.addColorStop(0, "rgba(255,255,255,0.20)");
+  glass.addColorStop(0.45, "rgba(255,255,255,0)");
+  glass.addColorStop(1, "rgba(0,0,0,0.26)");
+  ctx.fillStyle = glass;
+  ctx.fillRect(lx - lr, ly - lr, lr * 2, lr * 2);
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(lx, ly, lr, 0, Math.PI * 2);
+  ctx.lineWidth = 7.5;
+  ctx.strokeStyle = "#34d399";
+  ctx.stroke();
+  ctx.restore();
+
+  drawSpatialTag(ctx, 212, 66, sx, sy - 108, "-90% Água", "#38bdf8", 1.0);
+  drawSpatialTag(ctx, 602, 504, 602, 456, "Esponja Crocante", "#34d399", 1.0);
+}
+
+// SCENE 2: Step 1 of Manufacturing — Fast Cryogenic Freezing (-40 °C) & Hexagonal Microcrystals
+function simFreezingCells(ctx, W, H, p, t, sc) {
+  const freezeProg = smoothstep(0.12, 0.72, p);
+  const tempC = Math.round(lerp(20, -40, freezeProg));
+
+  // Left: Physical Cryogenic Thermometer Column (X = 48..136)
+  const tx = 86, tyTop = 78, tyBot = 545;
+  roundRectPath(ctx, tx - 20, tyTop, 40, tyBot - tyTop, 20);
+  ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+  ctx.stroke();
+
+  // Scale ticks
+  for (let k = 0; k <= 6; k++) {
+    const yy = lerp(tyTop + 28, tyBot - 36, k / 6);
+    ctx.strokeStyle = "rgba(226, 232, 240, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(tx + 22, yy);
+    ctx.lineTo(tx + 34, yy);
+    ctx.stroke();
+  }
+
+  const fillFrac = lerp(0.84, 0.16, freezeProg);
+  const colTop = lerp(tyBot - 20, tyTop + 24, fillFrac);
+  const colColor = lerpColor("#f43f5e", "#38bdf8", freezeProg);
+  roundRectPath(ctx, tx - 11, colTop, 22, tyBot - colTop + 10, 11);
+  ctx.fillStyle = colColor;
+  ctx.fill();
+
+  // Thermometer bulb
+  ctx.beginPath();
+  ctx.arc(tx, tyBot + 16, 30, 0, Math.PI * 2);
+  ctx.fillStyle = colColor;
+  ctx.fill();
+  ctx.lineWidth = 3.5;
+  ctx.strokeStyle = "#e0f2fe";
+  ctx.stroke();
+
+  // Center-Right: Cellular Microscope Viewport (cx = 488, cy = 338, R = 268)
+  const mcx = 488, mcy = 338, mr = 268;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(mcx, mcy, mr, 0, Math.PI * 2);
+  const mBg = ctx.createRadialGradient(mcx, mcy, 30, mcx, mcy, mr);
+  mBg.addColorStop(0, lerpColor("#3b0718", "#0c2d48", freezeProg * 0.75));
+  mBg.addColorStop(1, "#071320");
+  ctx.fillStyle = mBg;
+  ctx.fill();
+  ctx.clip();
+
+  // Render 19 hexagonal plant cells with thick intact walls
+  const hexR = 54;
+  for (const cell of HEX_CELLS) {
+    const cx = mcx + cell.gx * hexR * 1.66;
+    const cy = mcy + cell.gy * hexR * 1.66;
+    const localFreeze = clamp((freezeProg * 1.35) - cell.ring * 0.16, 0, 1);
+
+    // Cell interior fluid -> crystalline blue
+    drawHexagon(ctx, cx, cy, hexR - 4);
+    ctx.fillStyle = lerpColor("#881337", "#0ea5e9", localFreeze * 0.55);
+    ctx.fill();
+
+    // Plant cell wall (stays rigid and unbroken!)
+    drawHexagon(ctx, cx, cy, hexR - 2);
+    ctx.lineWidth = 6.5;
+    ctx.strokeStyle = lerpColor("#fb7185", "#fda4af", localFreeze);
+    ctx.stroke();
+
+    // Before freezing: sloshing liquid wave; During/After freezing: uniform hexagonal ice microcrystal
+    if (localFreeze < 0.85) {
+      ctx.save();
+      ctx.globalAlpha = 1 - localFreeze;
+      ctx.fillStyle = "#38bdf8";
+      for (let d = 0; d < 3; d++) {
+        const a = t * 2.4 + cell.seed + d * 2.1;
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(a) * 16, cy + Math.sin(a) * 16, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    if (localFreeze > 0.08) {
+      ctx.save();
+      ctx.globalAlpha = localFreeze;
+      drawIceCrystal(ctx, cx, cy, 26 * localFreeze, cell.seed * 0.3 + Math.sin(t * 1.2 + cell.seed) * 0.05);
+      ctx.restore();
+    }
+
+    // Protected Vitamin C sphere nestled safely inside cell wall
+    ctx.fillStyle = "#4ade80";
+    ctx.beginPath();
+    ctx.arc(cx + 18, cy - 18, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Sweeping cryogenic frost wave ring
+  if (freezeProg > 0.02 && freezeProg < 0.96) {
+    ctx.beginPath();
+    ctx.arc(mcx, mcy, freezeProg * mr * 1.1, 0, Math.PI * 2);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.55)";
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Microscope Outer Rim
+  ctx.beginPath();
+  ctx.arc(mcx, mcy, mr, 0, Math.PI * 2);
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = lerpColor("#fb7185", "#38bdf8", freezeProg);
+  ctx.stroke();
+
+  const tempLabel = (tempC > 0 ? "+" : "") + tempC + " °C";
+  drawSpatialTag(ctx, 108, 616, tx, tyBot + 16, tempLabel, "#38bdf8", 1.0);
+  drawSpatialTag(ctx, 355, 42, mcx, mcy, "Microcristais", "#7dd3fc", smoothstep(0.32, 0.50, p));
+  drawSpatialTag(ctx, 648, 628, mcx + 88, mcy + 78, "Parede Intacta", "#fda4af", smoothstep(0.48, 0.66, p));
+}
+
+// SCENE 3: Step 2 of Manufacturing — High Vacuum (< 611 Pa Triple Point) & Direct Sublimation (Ice -> Vapor)
+function simVacuumSublimation(ctx, W, H, p, t, sc) {
+  const vacProg = smoothstep(0.05, 0.36, p);
+  const subProg = smoothstep(0.24, 0.88, p);
+
+  // Sealed Vacuum Chamber Vessel (x = 46..772, y = 36..644)
+  roundRectPath(ctx, 46, 36, 726, 608, 42);
+  ctx.fillStyle = "rgba(8, 17, 28, 0.90)";
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = lerpColor("#64748b", "#38bdf8", vacProg);
+  ctx.stroke();
+
+  // Top Cryogenic Condenser Coil (-60 °C) capturing rising vapor
+  for (let cx = 250; cx <= 680; cx += 54) {
+    roundRectPath(ctx, cx - 18, 62, 36, 26, 12);
+    ctx.fillStyle = lerpColor("#334155", "#bae6fd", subProg);
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#38bdf8";
+    ctx.stroke();
+  }
+
+  // Analog Vacuum Pressure Gauge (top-left inside chamber: cx = 142, cy = 136)
+  const gx = 142, gy = 136, gr = 64;
+  ctx.beginPath();
+  ctx.arc(gx, gy, gr, 0, Math.PI * 2);
+  ctx.fillStyle = "#0f172a";
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#38bdf8";
+  ctx.stroke();
+
+  // Cyan triple-point vacuum zone arc on gauge
+  ctx.beginPath();
+  ctx.arc(gx, gy, gr - 10, Math.PI * 0.75, Math.PI * 1.28);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "#22d3ee";
+  ctx.stroke();
+
+  // Sweeping needle (1 atm -> < 0.006 atm)
+  const needleAng = lerp(Math.PI * 0.15, Math.PI * 0.96, vacProg);
+  ctx.strokeStyle = "#facc15";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(gx, gy);
+  ctx.lineTo(gx + Math.cos(needleAng) * (gr - 14), gy + Math.sin(needleAng) * (gr - 14));
+  ctx.stroke();
+  ctx.fillStyle = "#facc15";
+  ctx.beginPath(); ctx.arc(gx, gy, 6, 0, Math.PI * 2); ctx.fill();
+
+  // Gentle thermal shelf plate at bottom of chamber
+  roundRectPath(ctx, 180, 566, 510, 18, 9);
+  ctx.fillStyle = lerpColor("#334155", "#f59e0b", smoothstep(0.20, 0.50, p) * 0.75);
+  ctx.fill();
+
+  // Strawberry Cellular Honeycomb Cross-Section on the shelf (cx = 438, cy = 382)
+  const mcx = 438, mcy = 382, hexR = 44;
+  for (let idx = 0; idx < HEX_CELLS.length; idx++) {
+    const cell = HEX_CELLS[idx];
+    const cx = mcx + cell.gx * hexR * 1.66;
+    const cy = mcy + cell.gy * hexR * 1.66;
+    // Outer cells sublimate first, inner core sublimates right after!
+    const cellSub = clamp((subProg * 1.45) - (2 - cell.ring) * 0.18 - (idx % 3) * 0.05, 0, 1);
+
+    // Cell lumen transitions from ice-blue to open dry dark-crimson micropore (ZERO shrinkage!)
+    drawHexagon(ctx, cx, cy, hexR - 3);
+    ctx.fillStyle = lerpColor("#0ea5e9", "#2a0813", cellSub);
+    ctx.fill();
+
+    // Rigid preserved crimson cell wall
+    drawHexagon(ctx, cx, cy, hexR - 2);
+    ctx.lineWidth = 5.5;
+    ctx.strokeStyle = "#fb7185";
+    ctx.stroke();
+
+    // Shrinking ice crystal sublimating directly into vapor (no liquid!)
+    if (cellSub < 0.95) {
+      drawIceCrystal(ctx, cx, cy, 21 * (1 - cellSub), cell.seed);
+    }
+
+    // Rising vapor particles streaming from sublimating crystal up to condenser coil
+    if (cellSub > 0.05 && cellSub < 0.98) {
+      for (let vp = 0; vp < 3; vp++) {
+        const vPhase = (t * 1.9 + cell.seed + vp * 0.33) % 1.0;
+        const vx = cx + Math.sin(vPhase * 6 + cell.seed) * 12;
+        const vy = lerp(cy, 92, vPhase);
+        ctx.save();
+        ctx.globalAlpha = Math.sin(vPhase * Math.PI) * 0.85;
+        ctx.fillStyle = "#e0f2fe";
+        ctx.beginPath();
+        ctx.arc(vx, vy, 4.2 + vPhase * 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Preserved Vitamin C bright green sphere inside every dry cell
+    ctx.fillStyle = "#4ade80";
+    ctx.beginPath();
+    ctx.arc(cx + 14, cy - 14, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawSpatialTag(ctx, 152, 238, gx, gy + gr, "Alto Vácuo", "#22d3ee", smoothstep(0.08, 0.24, p));
+  drawSpatialTag(ctx, 636, 172, 465, 195, "Gelo → Vapor", "#bae6fd", smoothstep(0.28, 0.44, p));
+  drawSpatialTag(ctx, 632, 608, mcx + 75, mcy + 68, "Poros Abertos", "#34d399", smoothstep(0.62, 0.80, p));
+}
+
+// SCENE 4: What differentiates freeze-drying from Thermal Oven & Vacuum Frying?
+function simThreeTechniques(ctx, W, H, p, t, sc) {
+  const actProg = smoothstep(0.08, 0.78, p);
+  const cols = [
+    { x: 10, w: 256, title: "Estufa Quente", border: "#f97316", mode: "oven" },
+    { x: 281, w: 256, title: "Fritura Óleo", border: "#eab308", mode: "oil" },
+    { x: 552, w: 256, title: "Liofilização", border: "#34d399", mode: "freeze" }
+  ];
+
+  for (const c of cols) {
+    const cx = c.x + c.w / 2;
+    const cy = 285;
+    roundRectPath(ctx, c.x, 26, c.w, 522, 28);
+    ctx.fillStyle = c.mode === "freeze" ? "rgba(12, 34, 29, 0.92)" : "rgba(13, 20, 30, 0.88)";
+    ctx.fill();
+    ctx.lineWidth = c.mode === "freeze" ? 3.5 : 2;
+    ctx.strokeStyle = c.border;
+    ctx.stroke();
+
+    if (c.mode === "oven") {
+      // Rising red-orange thermal heat waves + shriveling dark-brown strawberry + escaping Vitamin C
+      for (let w = 0; w < 4; w++) {
+        const wx = c.x + 52 + w * 50;
+        ctx.strokeStyle = "rgba(249, 115, 22, 0.62)";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let yy = 510; yy >= 360; yy -= 12) {
+          const xx = wx + Math.sin(yy * 0.06 - t * 5 + w) * 8;
+          if (yy === 510) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy);
+        }
+        ctx.stroke();
+      }
+      drawStrawberryShape(ctx, cx, cy + actProg * 22, 0.92, actProg * 0.92, "#e11d48", "#7c2d12", 0);
+
+      // Fading/escaping Vitamin C dots
+      for (let v = 0; v < 5; v++) {
+        const vp = (actProg + v * 0.18) % 1.0;
+        ctx.save();
+        ctx.globalAlpha = (1 - vp) * 0.8;
+        ctx.fillStyle = "#4ade80";
+        ctx.beginPath();
+        ctx.arc(cx - 35 + v * 18, cy - vp * 145, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    } else if (c.mode === "oil") {
+      // Bubbling yellow frying oil bath submerging the slice and soaking pores
+      const oilTop = lerp(495, 215, actProg);
+      ctx.save();
+      roundRectPath(ctx, c.x + 4, 30, c.w - 8, 514, 24);
+      ctx.clip();
+      ctx.fillStyle = "rgba(234, 179, 8, 0.34)";
+      ctx.fillRect(c.x, oilTop, c.w, 550 - oilTop);
+      for (let b = 0; b < 12; b++) {
+        const bp = (t * 1.4 + b * 0.27) % 1.0;
+        const bx = c.x + 28 + ((b * 43) % (c.w - 56));
+        const by = lerp(520, oilTop + 8, bp);
+        ctx.strokeStyle = "rgba(253, 224, 71, 0.75)";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(bx, by, 5 + (b % 4) * 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      drawStrawberryShape(ctx, cx, cy, 0.90, actProg * 0.22, "#f59e0b", "#b45309", 0);
+      // Heavy yellow oil droplets lodged inside the fruit
+      if (actProg > 0.25) {
+        ctx.fillStyle = "#facc15";
+        for (let d = 0; d < 7; d++) {
+          const a = (d / 7) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.arc(cx + Math.sin(a) * 34, cy + Math.cos(a) * 40, 6 * actProg, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else {
+      // Freeze-Drying: cool cyan vacuum halo, 100% intact size, crisp open pores & bright green Vitamin C!
+      const aura = ctx.createRadialGradient(cx, cy, 20, cx, cy, 125);
+      aura.addColorStop(0, "rgba(52, 211, 153, 0.25)");
+      aura.addColorStop(1, "rgba(52, 211, 153, 0)");
+      ctx.fillStyle = aura;
+      ctx.beginPath(); ctx.arc(cx, cy, 125, 0, Math.PI * 2); ctx.fill();
+
+      drawStrawberryShape(ctx, cx, cy, 0.96, 0, "#fb7185", "#e11d48", actProg);
+      for (let v = 0; v < 7; v++) {
+        const a = (v / 7) * Math.PI * 2 + 0.4;
+        ctx.fillStyle = "#4ade80";
+        ctx.shadowColor = "#4ade80";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(cx + Math.sin(a) * 34, cy + Math.cos(a) * 42, 5.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    drawSpatialTag(ctx, cx, 66, null, null, c.title, c.border, 1.0);
+  }
+  drawSpatialTag(ctx, 680, 498, 680, 335, "100% Intacta", "#34d399", smoothstep(0.45, 0.65, p));
+}
+
+// SCENE 5: Why it excels for long mountain hikes (Flow Mountain Sunrise + Animated Physical Balance Beam 198g vs 15g)
+function simMountainScale(ctx, W, H, p, t, sc) {
+  // Let the pure mountain hike breathe during the opening 1.5 seconds!
+  const uiIn = smoothstep(0.11, 0.28, p);
+  if (uiIn <= 0.02) return;
+
+  const tiltProg = smoothstep(0.20, 0.60, p);
+  const tiltRad = lerp(0, -0.24, tiltProg); // Left heavy pan drops down (+Y on left)
+
+  ctx.save();
+  ctx.globalAlpha = uiIn;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.72)";
+  ctx.shadowBlur = 16;
+
+  // Positioned in upper-right cloud sky (x = 418..812, y = 4..242 inside sim-canvas -> X = 484..878, Y = 358..596 on 1080x1920, 100% clear of hiker head!)
+  const fx = 615, fy = 126;
+
+  roundRectPath(ctx, 418, 4, 394, 236, 26);
+  ctx.fillStyle = "rgba(8, 15, 24, 0.72)";
+  ctx.fill();
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = "rgba(52, 211, 153, 0.65)";
+  ctx.stroke();
+
+  // Central Fulcrum Pillar
+  ctx.fillStyle = "#cbd5e1";
+  ctx.beginPath();
+  ctx.moveTo(fx, fy);
+  ctx.lineTo(fx - 18, fy + 94);
+  ctx.lineTo(fx + 18, fy + 94);
+  ctx.closePath();
+  ctx.fill();
+  roundRectPath(ctx, fx - 46, fy + 90, 92, 12, 6);
+  ctx.fillStyle = "#f1f5f9";
+  ctx.fill();
+
+  // Rotating Balance Beam
+  const armLen = 122;
+  const lx = fx - Math.cos(tiltRad) * armLen;
+  const ly = fy - Math.sin(tiltRad) * armLen;
+  const rx = fx + Math.cos(tiltRad) * armLen;
+  const ry = fy + Math.sin(tiltRad) * armLen;
+
+  ctx.strokeStyle = "#f8fafc";
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(lx, ly);
+  ctx.lineTo(rx, ry);
+  ctx.stroke();
+
+  ctx.fillStyle = "#facc15";
+  ctx.beginPath(); ctx.arc(fx, fy, 8.5, 0, Math.PI * 2); ctx.fill();
+
+  // Left Pan: Heavy 198g fresh water-filled strawberries + dripping water drops
+  const lPanY = ly + 46;
+  ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx - 34, lPanY); ctx.moveTo(lx, ly); ctx.lineTo(lx + 34, lPanY); ctx.stroke();
+  roundRectPath(ctx, lx - 46, lPanY, 92, 9, 4.5);
+  ctx.fillStyle = "#f87171"; ctx.fill();
+
+  for (const [ox, oy, scF] of [[-18, -18, 0.20], [18, -18, 0.20], [0, -24, 0.24], [-10, -38, 0.18], [10, -38, 0.18]]) {
+    drawStrawberryShape(ctx, lx + ox, lPanY + oy, scF, tiltProg * 0.25, "#fb7185", "#be123c", 0);
+  }
+  ctx.shadowBlur = 0;
+  for (let d = 0; d < 3; d++) {
+    const dp = (t * 1.8 + d * 0.33) % 1.0;
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(lx - 14 + d * 14, lPanY + 12 + dp * 24, 3.6 * (1 - dp * 0.4), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Right Pan: Featherweight 15g freeze-dried slices floating high + golden energy sparks!
+  const rPanY = ry + 46;
+  ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 2.2;
+  ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 34, rPanY); ctx.moveTo(rx, ry); ctx.lineTo(rx + 34, rPanY); ctx.stroke();
+  roundRectPath(ctx, rx - 46, rPanY, 92, 9, 4.5);
+  ctx.fillStyle = "#34d399"; ctx.fill();
+
+  drawStrawberryShape(ctx, rx, rPanY - 24 + Math.sin(t * 3.2) * 3.5, 0.25, 0, "#fb7185", "#e11d48", 1.0);
+  for (let e = 0; e < 5; e++) {
+    const epP = (t * 1.6 + e * 0.2) % 1.0;
+    ctx.fillStyle = "#facc15";
+    ctx.beginPath();
+    ctx.arc(rx - 18 + e * 9, rPanY - 32 - epP * 38, 3.4 * (1 - epP * 0.5), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  drawSpatialTag(ctx, lx - 6, 34, lx, lPanY - 28, "198 g Fresca", "#f87171", uiIn);
+  drawSpatialTag(ctx, rx + 6, 34, rx, rPanY - 28, "15 g Seca", "#34d399", uiIn);
+}
+
+// SCENE 6: Natural Product Exemplar Moment (daVIDA 15g Barrier Pouch + Dry-Sponge Mountain Mist Care + IBG-002)
+function simExemplarPouch(ctx, W, H, p, t, sc) {
+  const pouchIn = clamp(spring(Math.round(p * sc.duration * 24)), 0, 1.04);
+  const mistProg = smoothstep(0.28, 0.82, p);
+  const codeIn = smoothstep(0.66, 0.82, p);
+
+  // Left: Official daVIDA 15g Barrier Pouch Cutout (X = 28..368)
+  const pouchImg = window.__IMAGES["davida_morango_pouch.png"];
+  const px = 198, py = 286 + Math.sin(t * 2.4) * 6;
+  const glow = ctx.createRadialGradient(px, py, 20, px, py, 190);
+  glow.addColorStop(0, "rgba(244, 63, 94, 0.28)");
+  glow.addColorStop(1, "rgba(244, 63, 94, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath(); ctx.arc(px, py, 190, 0, Math.PI * 2); ctx.fill();
+
+  if (pouchImg && pouchImg.complete) {
+    const pw = 300 * pouchIn, ph = 376 * pouchIn;
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.58)";
+    ctx.shadowBlur = 28;
+    ctx.drawImage(pouchImg, px - pw / 2, py - ph / 2, pw, ph);
+    ctx.restore();
+
+    // Animated tear-notch line + crisp scissors icon across top heat-seal
+    if (mistProg > 0.1) {
+      const cutY = py - ph / 2 + 28;
+      const cutX0 = px - 106;
+      const cutX1 = cutX0 + 212 * clamp(mistProg * 1.4, 0, 1);
+      ctx.save();
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 3.5;
+      ctx.setLineDash([7, 5]);
+      ctx.beginPath();
+      ctx.moveTo(cutX0, cutY);
+      ctx.lineTo(cutX1, cutY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Vector scissors icon moving along the tear line
+      ctx.translate(cutX0 - 14, cutY);
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 2.8;
+      ctx.beginPath();
+      ctx.arc(-8, -7, 5.5, 0, Math.PI * 2);
+      ctx.moveTo(-3, -4); ctx.lineTo(14, 5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(-8, 7, 5.5, 0, Math.PI * 2);
+      ctx.moveTo(-3, 4); ctx.lineTo(14, -5);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // Right: Visual Hygroscopic "Dry Sponge" Demonstration in Mountain Mist (X = 408..796)
+  roundRectPath(ctx, 408, 42, 388, 396, 28);
+  ctx.fillStyle = "rgba(10, 20, 30, 0.86)";
+  ctx.fill();
+  ctx.lineWidth = 2.2;
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+  ctx.stroke();
+
+  const scx = 602, scy = 248;
+  drawStrawberryShape(ctx, scx, scy, 0.92, 0, "#fb7185", "#e11d48", 1.0);
+
+  // Mountain mist droplets being magnetically pulled toward the dry pores when open
+  for (let m = 0; m < 16; m++) {
+    const a = (m / 16) * Math.PI * 2 + t * 0.35;
+    const cycle = (t * 0.95 + m * 0.17) % 1.0;
+    const dist = lerp(155, 32, cycle * mistProg);
+    const mx = scx + Math.cos(a) * dist;
+    const my = scy + Math.sin(a) * dist;
+    ctx.save();
+    ctx.globalAlpha = mistProg * Math.sin(cycle * Math.PI);
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(mx, my, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Discreet Vitrine Code Badge at end of scene (bottom-right of content zone)
+  if (codeIn > 0.02) {
+    ctx.save();
+    ctx.globalAlpha = codeIn;
+    roundRectPath(ctx, 456, 462, 292, 66, 999);
+    ctx.fillStyle = "#facc15";
+    ctx.fill();
+    ctx.fillStyle = "#090d16";
+    ctx.font = "900 27px -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const codeTxt = (sc.data && sc.data.vitrine_code) ? sc.data.vitrine_code : "Bio · IBG-002";
+    window.__CURRENT_LABELS.push(codeTxt);
+    ctx.fillText(codeTxt, 602, 496);
+    ctx.restore();
+  }
+
+  drawSpatialTag(ctx, 198, 514, px, py + 120, "100% Fruta", "#34d399", pouchIn);
+  drawSpatialTag(ctx, 602, 86, scx, scy - 80, "Puxa Umidade", "#38bdf8", smoothstep(0.30, 0.48, p));
+}
+
+/* --- Master Frame Update --- */
+window.__setFrame = function(frame) {
+  const ep = window.__EPISODE;
+  if (!ep) return;
+  const fps = ep.fps || 24;
+  const t = frame / fps;
+
+  let sc = ep.scenes[ep.scenes.length - 1];
+  for (let i = 0; i < ep.scenes.length; i++) {
+    if (t >= ep.scenes[i].start && t < ep.scenes[i].end) {
+      sc = ep.scenes[i];
+      break;
+    }
+  }
+  const scLocalFrame = Math.max(0, Math.round((t - sc.start) * fps));
+  const scProg = clamp((t - sc.start) / Math.max(0.1, sc.duration), 0, 1);
+
+  const zone = document.getElementById("content-zone");
+  const simCanvas = document.getElementById("sim-canvas");
+  const isTall = sc.show_rig === false;
+  if (lastSceneId !== sc.scene) {
+    lastSceneId = sc.scene;
+    document.getElementById("pill-text").textContent = sc.pill_text || "";
+    zone.className = isTall ? "tall" : "";
+    simCanvas.width = 818;
+    simCanvas.height = isTall ? 680 : 572;
+  }
+
+  renderBackground(ep, sc, t);
+
+  // Top context pill animation
+  const pillDelay = (ep.transparent_overlay && sc.use_flow_bg) ? 38 : 0;
+  const pillIn = clamp(spring(scLocalFrame - pillDelay), 0, 1.04);
+  const pill = document.getElementById("top-pill");
+  if (!sc.pill_text) {
+    pill.style.display = "none";
+  } else {
+    pill.style.display = "inline-flex";
+    pill.style.opacity = clamp(pillIn, 0, 1);
+    pill.style.transform = `translateY(${(1 - pillIn) * -18}px) scale(${0.94 + 0.06 * pillIn})`;
+  }
+
+  // Render active Canvas 2D physical simulation
+  window.__CURRENT_LABELS = [];
+  const ctx = simCanvas.getContext("2d");
+  ctx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+  const sim = sc.sim || "water_vs_sponge";
+  if (sim === "water_vs_sponge") simWaterVsSponge(ctx, simCanvas.width, simCanvas.height, scProg, t, sc);
+  else if (sim === "freezing_cells") simFreezingCells(ctx, simCanvas.width, simCanvas.height, scProg, t, sc);
+  else if (sim === "vacuum_sublimation") simVacuumSublimation(ctx, simCanvas.width, simCanvas.height, scProg, t, sc);
+  else if (sim === "three_techniques") simThreeTechniques(ctx, simCanvas.width, simCanvas.height, scProg, t, sc);
+  else if (sim === "mountain_scale") simMountainScale(ctx, simCanvas.width, simCanvas.height, scProg, t, sc);
+  else if (sim === "exemplar_pouch") simExemplarPouch(ctx, simCanvas.width, simCanvas.height, scProg, t, sc);
+
+  // Inspector Rig 2.5D animation
+  const rigBox = document.getElementById("inspector-rig");
+  const capBox = document.getElementById("caption-box");
+  if (sc.show_rig === false) {
+    rigBox.style.display = "none";
+    capBox.className = "full-width";
+  } else {
+    rigBox.style.display = "block";
+    capBox.className = "";
+    let actName = "neutro";
+    const acts = sc.actions || [[0.0, "neutro"]];
+    for (let i = 0; i < acts.length; i++) {
+      if (scProg >= acts[i][0]) actName = acts[i][1];
+    }
+    const cfg = RIG_ACTIONS[actName] || RIG_ACTIONS.neutro;
+
+    const breathY = Math.sin(t * 2.8) * 4.2;
+    const headY = Math.sin(t * 2.8 + 0.3) * 4.8;
+    const headTilt = actName === "toque_chapeu" ? 0 : Math.sin(t * 1.6) * 2.4;
+    const antSway = Math.sin(t * 3.8) * 5.0;
+
+    for (const tKey of ["torso_neutro", "torso_apontar", "torso_toque_chapeu"]) {
+      const tEl = document.getElementById("rig-torso-" + tKey);
+      tEl.style.display = tKey === cfg.torso ? "block" : "none";
+      if (tKey === cfg.torso) tEl.style.transform = `translateY(${breathY.toFixed(2)}px)`;
+    }
+    document.getElementById("rig-head-grp").style.transform = `translateY(${headY.toFixed(2)}px) rotate(${headTilt.toFixed(2)}deg)`;
+    document.getElementById("rig-olhos-dir").style.display = cfg.look === "direita" ? "block" : "none";
+
+    const blinkPhase = t % 3.2;
+    const bMeio = document.getElementById("rig-blink-meio");
+    const bFech = document.getElementById("rig-blink-fechado");
+    if (blinkPhase < 0.05 || (blinkPhase >= 0.14 && blinkPhase < 0.19)) {
+      bMeio.style.display = "block"; bFech.style.display = "none";
+    } else if (blinkPhase >= 0.05 && blinkPhase < 0.14) {
+      bMeio.style.display = "none"; bFech.style.display = "block";
+    } else {
+      bMeio.style.display = "none"; bFech.style.display = "none";
+    }
+
+    const bl = document.getElementById("rig-brow-l");
+    const br = document.getElementById("rig-brow-r");
+    if (cfg.brow === "analitico") {
+      bl.style.transform = "translateY(-7px) rotate(6deg)";
+      br.style.transform = "translateY(2px) rotate(-5deg)";
+    } else if (cfg.brow === "alerta") {
+      bl.style.transform = "translateY(-8px) rotate(4deg)";
+      br.style.transform = "translateY(-8px) rotate(-4deg)";
+    } else {
+      bl.style.transform = "none"; br.style.transform = "none";
+    }
+
+    document.getElementById("rig-ant-l").style.transform = `rotate(${antSway.toFixed(2)}deg)`;
+    document.getElementById("rig-ant-r").style.transform = `rotate(${(-antSway * 0.85).toFixed(2)}deg)`;
+    const lantDeg = cfg.lanterna + Math.sin(t * 2.3) * 2.2;
+    document.getElementById("rig-lanterna").style.transform = `rotate(${lantDeg.toFixed(2)}deg)`;
+    const beamEl = document.getElementById("rig-beam");
+    beamEl.style.display = cfg.beam ? "block" : "none";
+    beamEl.style.transform = `rotate(${lantDeg.toFixed(2)}deg)`;
+    const lupaDeg = cfg.lupa + Math.sin(t * 2.1 + 0.8) * 3.0;
+    document.getElementById("rig-lupa").style.transform = `rotate(${lupaDeg.toFixed(2)}deg)`;
+
+    const fgArm = document.getElementById("rig-fg-arm");
+    if (cfg.fg) {
+      fgArm.style.display = "block";
+      fgArm.style.transform = `translateY(${headY.toFixed(2)}px)`;
+    } else {
+      fgArm.style.display = "none";
+    }
+
+    const visArr = ep.viseme_frames || [];
+    const visCode = visArr[frame] || (actName === "toque_chapeu" || actName === "apontar_produto" ? "SORRISO" : "X");
+    for (const vKey of ["X", "BMP", "FV", "EI", "A", "OU", "SORRISO"]) {
+      document.getElementById("rig-vis-" + vKey).style.display = vKey === visCode ? "block" : "none";
+    }
+  }
+
+  // Dynamic 1-3 word captions (hidden cleanly during breath pauses)
+  const beats = sc.caption_beats || [];
+  let activeBeat = null;
+  for (let i = 0; i < beats.length; i++) {
+    if (t >= beats[i].start - 0.04 && t <= beats[i].end + 0.08) {
+      activeBeat = beats[i];
+      break;
+    }
+  }
+  if (activeBeat && activeBeat.words) {
+    capBox.style.opacity = "1";
+    let activeIdx = 0;
+    for (let i = 0; i < activeBeat.words.length; i++) {
+      if (t >= activeBeat.words[i].start) activeIdx = i;
+    }
+    capBox.innerHTML = activeBeat.words.map((w, idx) => {
+      const cls = idx === activeIdx ? "cap-word active" : "cap-word";
+      return `<span class="${cls}">${w.text}</span>`;
+    }).join("");
+  } else {
+    capBox.style.opacity = "0";
+  }
+};
+
+window.__countScreenWords = function() {
+  const pillEl = document.getElementById("top-pill");
+  let texts = [];
+  if (pillEl && pillEl.style.display !== "none") {
+    texts.push(document.getElementById("pill-text").textContent || "");
+  }
+  texts = texts.concat(window.__CURRENT_LABELS || []);
+  const blob = texts.join(" ").trim();
+  if (!blob) return 0;
+  const tokens = blob.split(/\s+/).filter(Boolean);
+  return tokens.length;
+};
+
+window.__auditBoxes = function(sceneId) {
+  const out = [];
+  const grab = (id, label, kind) => {
+    const el = document.getElementById(id);
+    if (!el || el.style.display === "none") return;
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return;
+    out.push({
+      scene: sceneId,
+      label: label,
+      kind: kind,
+      bbox_1080: [
+        Math.round(r.left),
+        Math.round(r.top),
+        Math.round(r.right),
+        Math.round(r.bottom)
+      ]
+    });
+  };
+  grab("top-pill", "top_pill", "hud");
+  grab("sim-canvas", "sim_canvas", "content");
+  grab("inspector-rig", "inspector_rig", "character");
+  grab("caption-box", "dynamic_caption", "caption");
+  return out;
+};
+</script>
+</body>
+</html>

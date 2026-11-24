@@ -383,6 +383,18 @@ def _validate_render_common(
             )
 
     stats["boxes_audited"] = len(boxes)
+
+    # Optional visual word-budget check for web_motion_engine episodes (biblia.md §3: <= 14 visible non-caption words)
+    screen_words_map = audit.get("scene_screen_words", {})
+    if isinstance(screen_words_map, dict) and screen_words_map:
+        max_screen_words = max(int(v) for v in screen_words_map.values())
+        stats["max_screen_words_non_caption"] = max_screen_words
+        for sc_k, w_cnt in screen_words_map.items():
+            if int(w_cnt) > 14:
+                errors.append(
+                    f"[{label}] Excesso de texto fixo na tela (Cena {sc_k}: {w_cnt} palavras > 14 de biblia.md §3 — priorize animação visual com rótulos espaciais curtos)."
+                )
+
     if warnings:
         stats["warnings"] = warnings
 
@@ -451,6 +463,9 @@ def validate_portao_3(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
         _check_privacy(p_text, "Portão 3", errors)
         if not re.search(r"REQ-007|inteligência artificial|gerad[oa] por IA", p_text, re.IGNORECASE):
             errors.append("[Portão 3] Aviso determinístico de conteúdo de IA (REQ-007) ausente em pacote.md.")
+        unresolved_ph = re.findall(r"<LINK_[^>]+>", p_text)
+        if unresolved_ph:
+            errors.append(f"[Portão 3] Placeholders de link não resolvidos em pacote.md: {', '.join(sorted(set(unresolved_ph)))}")
         stats["pacote_md_bytes"] = pacote_path.stat().st_size
     return len(errors) == 0, errors, stats
 
