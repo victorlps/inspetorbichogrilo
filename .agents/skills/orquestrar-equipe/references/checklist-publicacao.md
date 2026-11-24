@@ -14,7 +14,7 @@ Guia operacional padrão para fechar o **Portão 3**, atualizar a **vitrine na b
   > Links verificados por código na vitrine 👇
 - **Link na bio:** URL pública da vitrine no GitHub Pages (`https://<usuario>.github.io/<repo>/`).
 - **Configurações por plataforma:**
-  1. **Instagram:** Conta Profissional (*Criador de Conteúdo* ou *Empresa*) vinculada a uma **Página do Facebook** dedicada (necessário para automação de comentários→DM gratuita no Meta Business Suite).
+  1. **Instagram:** Conta Profissional (*Criador de Conteúdo* ou *Empresa*) vinculada a uma **Página do Facebook** dedicada (necessário para automação de comentários→DM gratuita e publicação de Reels via Meta Business Suite / Graph API). *Nota:* o campo de link na bio só pode ser editado pelo app mobile (Instagram Web bloqueia mesmo com emulação mobile).
   2. **TikTok:** Conta *Criador/Pessoal* (evita bloqueio de áudios e facilita alcance orgânico inicial).
   3. **YouTube:** Canal verificado em **Recursos Intermediários/Avançados** (libera links clicáveis e comentários fixados em Shorts).
   4. **Mercado Livre:** Cadastro ativo no **Programa de Afiliados (CPF)** e perfil **Mercado Livre Clips** configurado com o mesmo avatar/nome.
@@ -57,7 +57,7 @@ Guia operacional padrão para fechar o **Portão 3**, atualizar a **vitrine na b
 | **Instagram Reels** | `video_final_1080p.mp4` | **Ativar** (se houver cena `flow_ia`) | Colar legenda de `pacote.md` (`2.1`) e ativar automação de DM no Meta Business Suite para a palavra-chave (ex.: `ZAGONEL`). |
 | **TikTok** | `video_final_1080p.mp4` | **Ativar obrigatoriamente** ("Conteúdo gerado por IA") | Colar legenda de `pacote.md` (`2.2`) com o código `IBG-XXX`. |
 | **YouTube Shorts** | `video_final_1080p.mp4` | **Marcar** conteúdo alterado/sintético (se houver `flow_ia`) | Colar título/descrição de `pacote.md` (`2.3`) e **fixar comentário** com os links curtos por variação. |
-| **Mercado Livre Clips** | `video_final_ml_clips_1080p.mp4` | Não aplicável (versão sem `flow_ia`) | Vincular os anúncios oficiais do catálogo correspondentes ao produto. |
+| **Mercado Livre Clips** | `video_final_ml_clips_1080p.mp4` (`≤ 60s`) | Não aplicável (versão sem `flow_ia`) | Enviar pelo app mobile (para afiliados) ou Vídeo Studio (vendedores), vinculando os anúncios oficiais do catálogo. |
 
 ---
 
