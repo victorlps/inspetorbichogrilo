@@ -15,7 +15,11 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+EXPECTED_CHANNEL_ID = "UCgIp02Q0H3rXsNwL-kDdFbA"  # @inspetorbichogrilo
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.readonly",
+]
 
 
 def _resolve_oauth_paths() -> tuple[Path, Path]:
@@ -80,6 +84,16 @@ def upload_short(
         raise FileNotFoundError(f"Vídeo não encontrado: {video_path}")
 
     youtube = get_youtube_service()
+    ch_resp = youtube.channels().list(part="snippet", mine=True).execute()
+    channels = ch_resp.get("items", [])
+    active_id = channels[0]["id"] if channels else ""
+    active_title = channels[0]["snippet"]["title"] if channels else "desconhecido"
+    if active_id != EXPECTED_CHANNEL_ID:
+        raise RuntimeError(
+            f"Canal OAuth incorreto: '{active_title}' ({active_id}). "
+            f"Esperado: 'Inspetor Bicho Grilo' ({EXPECTED_CHANNEL_ID}). "
+            "Apague .env.youtube_token.json e selecione o canal Inspetor Bicho Grilo na tela OAuth."
+        )
     body: dict[str, Any] = {
         "snippet": {
             "title": title[:100],
