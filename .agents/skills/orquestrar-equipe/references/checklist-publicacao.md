@@ -50,7 +50,16 @@ Guia operacional padrão para fechar o **Portão 3**, atualizar a **vitrine na b
 
 ---
 
-## 4. Upload Assistido por Plataforma (`REQ-007`, `REQ-010`)
+## 4. Upload Automatizado (Playwright Local) / Assistido por Plataforma (`REQ-007`, `REQ-010`)
+
+- **Setup único de sessão persistente:**
+  ```bash
+  PYTHONPATH=. .venv/bin/python src/publish/playwright_publish.py --login
+  ```
+- **Envio automático (YouTube + Instagram/Meta + TikTok) lendo `pacote.md`:**
+  ```bash
+  PYTHONPATH=. .venv/bin/python src/publish/playwright_publish.py --product-dir produtos/<slug> --platform all
+  ```
 
 | Plataforma | Arquivo de Vídeo | Rótulo de IA (`REQ-007`) | Ação Obrigatória Pós-Upload |
 |---|---|---|---|
