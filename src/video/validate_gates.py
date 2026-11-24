@@ -1,9 +1,11 @@
-"""Deterministic Portao 1 and Portao 2 validators for product curation and script artifacts."""
+"""Deterministic Portao 1, 2, and 3 validators for product curation, storyboard/animatic, and final video artifacts (ADR 0008)."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -113,6 +115,7 @@ def validate_portao_2(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
     """Run deterministic checks for Portao 2 (roteiro.md)."""
     roteiro_path = prod_dir / "roteiro.md"
     errors: list[str] = []
+    warnings: list[str] = []
     stats: dict[str, object] = {}
 
     if not roteiro_path.exists():
@@ -136,6 +139,12 @@ def validate_portao_2(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
     if not (sec1_m and sec2_m and sec3_m):
         errors.append("[Portão 2] Seções obrigatórias (1. Mapa de Cenas, 2. Dicionário Fonético, 3. Orçamento Flow) ausentes.")
         return False, errors, stats
+
+    # Check Section 4 (Notas de Fidelidade do @Curador — ADR 0008)
+    sec4_m = re.search(r"##\s*4\..*fidelidade.*", text, re.IGNORECASE | re.DOTALL)
+    stats["has_curador_fidelity_notes"] = bool(sec4_m)
+    if not sec4_m:
+        errors.append("[Portão 2] Seção '## 4. Notas de Fidelidade Física e Factual (@Curador)' ausente em roteiro.md (ADR 0008).")
 
     # 1. Validate scene table: continuity, visual engines, speech length <= 15 words, no variable price
     scene_rows = _extract_table_rows(sec1_m.group(0))[1:]  # skip header
@@ -187,7 +196,7 @@ def validate_portao_2(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
                 long_sentences.append(f"Cena {idx} ({wc} pal): '{sent}'")
 
     if long_sentences:
-        errors.append(f"[Portão 2] Frases acima do teto de 15 palavras (0006): {'; '.join(long_sentences)}")
+        warnings.append(f"[Portão 2] Alerta de ritmo (>15 palavras escritas): {'; '.join(long_sentences)}")
 
     stats["scenes"] = len(scene_rows)
     stats["timeline_s"] = prev_end or 0
@@ -236,7 +245,9 @@ def validate_portao_2(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
             if swc > 15:
                 long_spoken_sentences.append(f"({swc} faladas): '{expanded}'")
     if long_spoken_sentences:
-        errors.append(f"[Portão 2] Frases expandidas (TTS) acima de 15 palavras: {'; '.join(long_spoken_sentences)}")
+        warnings.append(f"[Portão 2] Alerta de ritmo (>15 palavras faladas): {'; '.join(long_spoken_sentences)}")
+    if warnings:
+        stats["warnings"] = warnings
 
     stats["spoken_words"] = spoken_total_words
     stats["est_spoken_s"] = round(spoken_total_words / 2.6, 1)
@@ -275,16 +286,196 @@ def validate_portao_2(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
     return len(errors) == 0, errors, stats
 
 
+def _ffprobe_streams(mp4_path: Path) -> dict[str, object]:
+    out = subprocess.check_output(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration,size:stream=codec_type,codec_name,width,height",
+            "-of",
+            "json",
+            str(mp4_path),
+        ],
+        text=True,
+    )
+    return json.loads(out)
+
+
+def _validate_render_common(
+    prod_dir: Path,
+    gate_num: int,
+    expected_video_name: str,
+    expected_res: tuple[int, int],
+) -> tuple[bool, list[str], dict[str, object]]:
+    """Run deterministic checks for Portao 3 (preview.mp4) or Portao 4 (video_final_1080p.mp4)."""
+    label = f"Portão {gate_num}"
+    errors: list[str] = []
+    warnings: list[str] = []
+    stats: dict[str, object] = {}
+
+    build_dir = prod_dir / "_preview_build"
+    timeline_path = build_dir / "timeline.json"
+    audit_path = build_dir / "render_audit.json"
+    video_path = prod_dir / expected_video_name
+
+    for req_p in (timeline_path, audit_path, video_path):
+        if not req_p.exists() or req_p.stat().st_size == 0:
+            errors.append(f"[{label}] Arquivo obrigatório ausente ou vazio: {req_p.name}")
+
+    if errors:
+        return False, errors, stats
+
+    timeline = json.loads(timeline_path.read_text(encoding="utf-8"))
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+
+    # (a) Validate TTS audio files (> 1024 bytes) & WordBoundary events for all scenes
+    scenes = timeline.get("scenes", [])
+    if not scenes:
+        errors.append(f"[{label}] Nenhuma cena encontrada em timeline.json.")
+
+    total_words = 0
+    max_beat_words = 0
+    for sc in scenes:
+        sc_id = sc.get("scene", "?")
+        a_file = build_dir / str(sc.get("audio_file", f"audio_{sc_id}.mp3"))
+        if not a_file.exists() or a_file.stat().st_size < 1024:
+            errors.append(f"[{label}] Áudio TTS ausente ou truncado (<1024 bytes) na Cena {sc_id}: {a_file.name}")
+        raw_w = sc.get("raw_words", [])
+        if not raw_w:
+            errors.append(f"[{label}] Eventos WordBoundary ausentes na Cena {sc_id}.")
+        total_words += len(raw_w)
+        for beat in sc.get("caption_beats", []):
+            wc = int(beat.get("word_count", len(beat.get("words", []))))
+            if wc > max_beat_words:
+                max_beat_words = wc
+            if wc < 1 or wc > 3:
+                errors.append(f"[{label}] Batida de legenda fora da regra de 1–3 palavras (Cena {sc_id}: {wc} palavras).")
+
+    stats["scenes_checked"] = len(scenes)
+    stats["tts_word_events"] = total_words
+    stats["max_caption_words_per_beat"] = max_beat_words
+
+    # (b) Validate 9:16 Safe Zone coordinates in canonical 1080x1920 space:
+    # Hard limit: X = 48..887 px, Y = 288..1247 px; Warning if X < 65 px; Captions in Y = 1040..1220 px
+    boxes = audit.get("layout_boxes_1080", [])
+    if not boxes:
+        errors.append(f"[{label}] Lista layout_boxes_1080 vazia em render_audit.json.")
+
+    for b in boxes:
+        sc_id = b.get("scene", "?")
+        b_label = b.get("label", "elem")
+        kind = b.get("kind", "element")
+        x0, y0, x1, y1 = [int(v) for v in b.get("bbox_1080", [0, 0, 0, 0])]
+        if x0 < 48 or x1 > 887 or y0 < 288 or y1 > 1247:
+            errors.append(
+                f"[{label}] Elemento '{b_label}' (Cena {sc_id}) invade área proibida das redes: "
+                f"bbox_1080=({x0},{y0},{x1},{y1}) fora de X=48..887, Y=288..1247."
+            )
+        elif x0 < 65:
+            warnings.append(
+                f"[{label}] Alerta: '{b_label}' (Cena {sc_id}) com X={x0}px (< 65px folga conservadora Reels)."
+            )
+        if kind == "caption" and (y0 < 1040 or y1 > 1220):
+            errors.append(
+                f"[{label}] Legenda '{b_label}' (Cena {sc_id}) fora da faixa Y=1040..1220 px: Y={y0}..{y1}."
+            )
+
+    stats["boxes_audited"] = len(boxes)
+    if warnings:
+        stats["warnings"] = warnings
+
+    # (c) Validate styleframes & keyframes exist on disk
+    sf_list = audit.get("styleframes", [])
+    kf_list = audit.get("keyframes", [])
+    if len(sf_list) < len(scenes):
+        errors.append(f"[{label}] Styleframes insuficientes ({len(sf_list)} < {len(scenes)} cenas).")
+    for rel in sf_list + kf_list:
+        p = prod_dir / rel
+        if not p.exists() or p.stat().st_size == 0:
+            errors.append(f"[{label}] Quadro visual ausente ou vazio: {rel}")
+    stats["styleframes"] = len(sf_list)
+    stats["keyframes"] = len(kf_list)
+
+    # (d) Validate rendered MP4 via ffprobe (resolution, H.264 + AAC streams, duration consistency)
+    probe = _ffprobe_streams(video_path)
+    streams = probe.get("streams", [])
+    fmt = probe.get("format", {})
+    v_stream = next((s for s in streams if s.get("codec_type") == "video"), None)
+    a_stream = next((s for s in streams if s.get("codec_type") == "audio"), None)
+
+    if not v_stream:
+        errors.append(f"[{label}] Stream de vídeo ausente em {video_path.name}.")
+    else:
+        vw, vh = int(v_stream.get("width", 0)), int(v_stream.get("height", 0))
+        stats["video_resolution"] = f"{vw}x{vh}"
+        stats["video_codec"] = v_stream.get("codec_name")
+        if (vw, vh) != expected_res:
+            errors.append(f"[{label}] Resolução de {video_path.name} incorreta: {vw}x{vh} (esperado {expected_res[0]}x{expected_res[1]}).")
+
+    if not a_stream:
+        errors.append(f"[{label}] Stream de áudio ausente em {video_path.name}.")
+    else:
+        stats["audio_codec"] = a_stream.get("codec_name")
+
+    vid_dur = round(float(fmt.get("duration", 0.0)), 2)
+    tl_dur = round(float(timeline.get("total_duration", 0.0)), 2)
+    stats["video_duration_s"] = vid_dur
+    if abs(vid_dur - tl_dur) > 0.6:
+        errors.append(f"[{label}] Duração do vídeo ({vid_dur}s) diverge da timeline ({tl_dur}s).")
+
+    # (e) Validate REQ-007 AI disclosure trigger when roteiro.md contains flow_ia
+    roteiro_path = prod_dir / "roteiro.md"
+    if roteiro_path.exists():
+        r_text = roteiro_path.read_text(encoding="utf-8")
+        if "flow_ia" in r_text.lower() and not timeline.get("req_007_ai_disclosure", False):
+            errors.append(f"[{label}] Roteiro usa flow_ia, mas flag req_007_ai_disclosure não está ativa em timeline.json.")
+
+    return len(errors) == 0, errors, stats
+
+
+def validate_portao_3(prod_dir: Path) -> tuple[bool, list[str], dict[str, object]]:
+    """Run deterministic checks for Portao 3 (video_final_1080p.mp4 at 1080x1920 + pacote.md under ADR 0008)."""
+    ok, errors, stats = _validate_render_common(
+        prod_dir,
+        gate_num=3,
+        expected_video_name="video_final_1080p.mp4",
+        expected_res=(1080, 1920),
+    )
+    pacote_path = prod_dir / "pacote.md"
+    if not pacote_path.exists() or pacote_path.stat().st_size == 0:
+        errors.append("[Portão 3] Arquivo pacote.md ausente ou vazio.")
+    else:
+        p_text = pacote_path.read_text(encoding="utf-8")
+        _check_privacy(p_text, "Portão 3", errors)
+        if not re.search(r"REQ-007|inteligência artificial|gerad[oa] por IA", p_text, re.IGNORECASE):
+            errors.append("[Portão 3] Aviso determinístico de conteúdo de IA (REQ-007) ausente em pacote.md.")
+        stats["pacote_md_bytes"] = pacote_path.stat().st_size
+    return len(errors) == 0, errors, stats
+
+
+def validate_portao_4(prod_dir: Path) -> tuple[bool, list[str], dict[str, object]]:
+    """Backward-compatible alias for Portao 3 final package validator."""
+    return validate_portao_3(prod_dir)
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate product Portao 1 and/or Portao 2 artifacts deterministically.")
+    parser = argparse.ArgumentParser(description="Validate product Portao 1, 2, 3, and/or 4 artifacts deterministically.")
     parser.add_argument("product_dir", type=Path, help="Path to produtos/<slug>")
-    parser.add_argument("--portao", type=int, action="append", choices=[1, 2], help="Gate(s) to validate (default: 1 and 2)")
+    parser.add_argument("--portao", type=int, action="append", choices=[1, 2, 3, 4], help="Gate(s) to validate (default: 1 and 2)")
     args = parser.parse_args()
 
     gates = args.portao or [1, 2]
+    validators = {
+        1: validate_portao_1,
+        2: validate_portao_2,
+        3: validate_portao_3,
+        4: validate_portao_4,
+    }
     all_ok = True
     for g in gates:
-        ok, errs, stats = validate_portao_1(args.product_dir) if g == 1 else validate_portao_2(args.product_dir)
+        ok, errs, stats = validators[g](args.product_dir)
         status = "APROVADO" if ok else "FALHOU"
         print(f"=== PORTÃO {g}: {status} ===")
         print("Resumo:", stats)

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raio-X 3D: Ducha Eletrônica Zagonel ND (Thermosystem → Hydra → Zagonel) — 9:16 Studio</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #05060a;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Palco 9:16 Vertical (1080x1920 equivalente) */
+    #stage-9-16 {
+      position: relative;
+      height: 100vh;
+      width: calc(100vh * 9 / 16);
+      max-width: 100vw;
+      max-height: calc(100vw * 16 / 9);
+      background: #090a0f;
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(0, 229, 255, 0.14);
+    }
+    #canvas-wrap {
+      position: absolute;
+      inset: 0;
+    }
+    /* Overlay SVG 3D -> 2D Leader Lines */
+    #hud-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 8;
+    }
+    /* Top Bar Minimalista de Raio-X (dentro da Área Segura Y ≈ 15%..18%) */
+    #top-bar {
+      position: absolute;
+      top: 15.8%;
+      left: 6.3%;
+      right: 18.5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #top-bar .topic {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(9, 12, 20, 0.82);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #e2e8f0;
+    }
+    #top-bar .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #00e5ff;
+      box-shadow: 0 0 8px #00e5ff;
+    }
+    #top-bar .badge {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.03em;
+    }
+    /* Pílula Única de Estado Físico (Y ≈ 51.5%) */
+    #state-pill-wrap {
+      position: absolute;
+      top: 51.5%;
+      left: 6.3%;
+      right: 18.5%;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #state-pill {
+      background: rgba(9, 10, 15, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      color: #f8fafc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
+    }
+    /* Legenda Dinâmica 1 a 3 palavras estilo @voceaprendeu (Y ≈ 56.5%) */
+    #caption-box {
+      position: absolute;
+      top: 56.8%;
+      left: 6.3%;
+      right: 18.5%;
+      text-align: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #caption-text {
+      display: inline-flex;
+      gap: 8px;
+      align-items: baseline;
+      justify-content: center;
+      background: rgba(9, 11, 18, 0.82);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      padding: 8px 16px 11px;
+      border-radius: 12px;
+      font-size: 19px;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+    }
+    #caption-text .word-active {
+      color: #facc15;
+      border-bottom: 3px solid #facc15;
+      padding-bottom: 2px;
+    }
+    /* Controles de Diretor (ocultáveis com tecla H para captura limpa) */
+    #hud-dock {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      background: rgba(11, 13, 20, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 9px 11px;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      transition: transform 0.25s ease, opacity 0.25s ease;
+    }
+    body.hud-hidden #hud-dock {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(16px);
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    button {
+      background: #161b26;
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 7px;
+      padding: 5px 9px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #1e293b; border-color: #22d3ee; }
+    button.active { background: #0891b2; border-color: #22d3ee; color: #fff; }
+    input[type="range"] {
+      flex: 1;
+      accent-color: #22d3ee;
+      cursor: pointer;
+    }
+    .time-readout {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: #94a3b8;
+      min-width: 68px;
+      text-align: right;
+    }
+    #hint {
+      font-size: 10px;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage-9-16">
+    <div id="canvas-wrap"></div>
+    <svg id="hud-svg" viewBox="0 0 1080 1920" preserveAspectRatio="none"></svg>
+
+    <div id="top-bar">
+      <div class="topic"><span class="dot"></span><span id="top-title">DENTRO DA DUCHA ND</span></div>
+      <div class="badge" id="top-badge">ilustrativo</div>
+    </div>
+
+    <div id="state-pill-wrap">
+      <div id="state-pill">🔴 REGISTRO FECHADO · CIRCUITO ABERTO</div>
+    </div>
+
+    <div id="caption-box">
+      <div id="caption-text"><span class="word-active">Por</span><span>que</span><span>chuveiro</span></div>
+    </div>
+
+    <div id="hud-dock">
+      <div class="row">
+        <button id="btn-play" class="active">Pausar</button>
+        <button id="btn-restart">Reiniciar</button>
+        <button id="btn-captions" class="active">Legenda</button>
+        <button id="btn-obs">Limpar Dock (H)</button>
+      </div>
+      <div class="row">
+        <input id="timeline" type="range" min="0" max="53" step="0.04" value="0" />
+        <span class="time-readout" id="time-readout">00.0 / 53s</span>
+      </div>
+      <div id="hint">Morfologia 3D Fiel Zagonel ND (324×204×Ø120 mm · Haste Vertical 493 mm) · Espaço · R · H</div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+  (function () {
+    const TOTAL_DURATION = 54;
+    // Batidas cinematográficas 3D sincronizadas com as 5 cenas do novo roteiro.md (compartimentos 100% estanques)
+    const SCRIPT_BEATS = [
+      {
+        start: 0, end: 5.5,
+        topTitle: "DUCHA ZAGONEL ND (REAL -> RAIO-X)", badge: "ilustrativo",
+        pill: "🟢 BENEFÍCIO: AJUSTE FINO COM JATO 100% ABERTO",
+        narration: "Por que chuveiro comum de três estalos nunca fica na temperatura certa? Ou a água ferve, ou você fecha o registro e perde metade do jato!",
+        cam: [3.2, 0.45, 3.4], tgt: [-0.1, -0.20, -0.05],
+        op: 0.72, ex: 0.05, wf: 0.85, pw: 0.45, dl: 1.0,
+        labels: [
+          { anchor: "chamber", text: "câmara vedada", dx: -175, dy: -75 },
+          { anchor: "rodCollar", text: "haste de calor", dx: -175, dy: 65 }
+        ]
+      },
+      {
+        start: 5.5, end: 11.0,
+        topTitle: "DUCHA ZAGONEL ND (REAL -> RAIO-X)", badge: "ilustrativo",
+        pill: "🟢 BENEFÍCIO: AJUSTE FINO COM JATO 100% ABERTO",
+        narration: "Abri em raio-x a clássica ND, da Thermosystem e Hydra, hoje da Zagonel!",
+        cam: [2.9, 0.65, 2.7], tgt: [-0.05, 0.0, -0.10],
+        op: 0.16, ex: 0.24, wf: 0.90, pw: 0.50, dl: 1.0,
+        labels: [
+          { anchor: "chamber", text: "câmara vedada", dx: -180, dy: -85 },
+          { anchor: "rodCollar", text: "haste de calor", dx: 155, dy: 60 }
+        ]
+      },
+      {
+        start: 11.0, end: 22.0,
+        topTitle: "REGULADOR GRADUAL (COMO UM DIMMER)", badge: "uso real + 3D",
+        pill: "🟢 JATO 100% FORTE · CALOR NO PONTO CERTO",
+        narration: "Em vez de três chaves fixas, a haste gira um regulador eletrônico no compartimento seco! Essa peça se chama TRIAC e funciona como um dimmer de luz. Você escolhe o calor exato no banho sem mexer na pressão da água!",
+        cam: [1.95, -0.15, 1.45], tgt: [0.0, -0.25, -0.66],
+        op: 0.14, ex: 0.42, wf: 1.0, pw: 0.85, dl: 1.0,
+        labels: [
+          { anchor: "triac", text: "regulador (dimmer)", dx: 150, dy: -70 },
+          { anchor: "dryZone", text: "compartimento seco", dx: -170, dy: 65 }
+        ]
+      },
+      {
+        start: 22.0, end: 32.0,
+        topTitle: "SEGURANÇA CONTRA QUEIMA A SECO", badge: "corte 3D",
+        pill: "🔵 ÁGUA NO DUTO FECHADO · PARTIDA SEGURA",
+        narration: "E por onde a água passa? Ela sobe por um tubo fechado e levanta essa borracha chamada diafragma! Ele só liga a energia com a câmara cheia. Por isso, na instalação, deixe correr água fria antes de ligar o disjuntor!",
+        cam: [2.15, 1.15, 1.75], tgt: [0.0, 0.42, -0.62],
+        op: 0.14, ex: 0.55, wf: 1.0, pw: 0.0, dl: 1.0,
+        labels: [
+          { anchor: "diaphragm", text: "trava de pressão", dx: 155, dy: -80 },
+          { anchor: "chamber", text: "tubo de água vedado", dx: -175, dy: 45 }
+        ]
+      },
+      {
+        start: 32.0, end: 44.0,
+        topTitle: "MESMA RESISTÊNCIA ND/TURBO · 127V VS 220V", badge: "peça real + 3D",
+        pill: "🟠 220V (7700W): ESQUENTA MAIS · 127V (5500W): FIO 10 mm²",
+        narration: "No pescoço curvo, a resistência continua a mesma da antiga ND e Turbo! Em 220V ela esquenta mais que em 127. Use o cabo certo e repare: a Zagonel deixou a haste toda branca!",
+        cam: [2.25, 0.35, 2.35], tgt: [0.0, 0.12, 0.35],
+        op: 0.15, ex: 0.38, wf: 1.0, pw: 1.0, dl: 1.0,
+        labels: [
+          { anchor: "heater", text: "mesmo encaixe ND/Turbo", dx: -165, dy: -80 },
+          { anchor: "rodCollar", text: "haste 100% branca", dx: 145, dy: 60 }
+        ]
+      },
+      {
+        start: 44.0, end: 54.0,
+        topTitle: "ZAGONEL ND OFICIAL · 4,8★ (3.152 AVAL.)", badge: "produto real",
+        pill: "🟢 LINK NA BIO · OU COMENTE: ZAGONEL",
+        narration: "É o projeto clássico com mais de três mil avaliações positivas e banho sem aperto! Quer a versão 127 ou 220V? Os links separados estão na bio, ou comente ZAGONEL!",
+        cam: [3.2, 0.35, 3.5], tgt: [0.0, -0.25, 0.0],
+        op: 0.48, ex: 0.0, wf: 1.0, pw: 0.92, dl: 1.0,
+        labels: [
+          { anchor: "heater", text: "127V · 5500W", dx: -165, dy: -80 },
+          { anchor: "spreader", text: "220V · 7700W", dx: 150, dy: -65 }
+        ]
+      }
+    ];
+
+    const stage = document.getElementById('stage-9-16');
+    const wrap = document.getElementById('canvas-wrap');
+    const hudSvg = document.getElementById('hud-svg');
+    const topTitle = document.getElementById('top-title');
+    const topBadge = document.getElementById('top-badge');
+    const statePill = document.getElementById('state-pill');
+    const captionBox = document.getElementById('caption-box');
+    const captionText = document.getElementById('caption-text');
+    const timeline = document.getElementById('timeline');
+    const timeReadout = document.getElementById('time-readout');
+    const btnPlay = document.getElementById('btn-play');
+    const btnRestart = document.getElementById('btn-restart');
+    const btnCaptions = document.getElementById('btn-captions');
+    const btnObs = document.getElementById('btn-obs');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x090a0f);
+    scene.fog = new THREE.FogExp2(0x090a0f, 0.05);
+
+    const camera = new THREE.PerspectiveCamera(40, 9 / 16, 0.1, 100);
+    camera.position.set(3.3, 0.5, 3.6);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    wrap.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(-0.15, -0.25, -0.1);
+
+    let userOrbiting = false;
+    controls.addEventListener('start', () => { userOrbiting = true; });
+
+    function resize() {
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Iluminação de Estúdio Raio-X (Fresnel Cyan + Deep Blue Rim + Warm Key)
+    scene.add(new THREE.HemisphereLight(0x38bdf8, 0x0b1020, 0.6));
+    const keyLight = new THREE.DirectionalLight(0xfff1e0, 1.35);
+    keyLight.position.set(4.5, 6.0, 5.5);
+    scene.add(keyLight);
+
+    const rimCyan = new THREE.DirectionalLight(0x00e5ff, 2.4);
+    rimCyan.position.set(-5.2, 3.2, -4.2);
+    scene.add(rimCyan);
+
+    const rimBlue = new THREE.DirectionalLight(0x2563eb, 1.85);
+    rimBlue.position.set(4.8, -2.5, -4.8);
+    scene.add(rimBlue);
+
+    // Materiais Raio-X e Engenharia Interna
+    const shellMat = new THREE.MeshPhysicalMaterial({
+      color: 0xe2ecf8, roughness: 0.16, metalness: 0.06, clearcoat: 1.0,
+      transparent: true, opacity: 0.90, depthWrite: false, side: THREE.DoubleSide
+    });
+    const whiteCollarMat = new THREE.MeshPhysicalMaterial({
+      color: 0xffffff, roughness: 0.18, metalness: 0.04, clearcoat: 1.0,
+      transparent: true, opacity: 0.96, side: THREE.DoubleSide
+    });
+    const rimWireMat = new THREE.MeshBasicMaterial({
+      color: 0x00e5ff, transparent: true, opacity: 0.0, wireframe: true, depthWrite: false
+    });
+    const chamberMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0ea5e9, roughness: 0.2, metalness: 0.1,
+      transparent: true, opacity: 0.25, depthWrite: false, side: THREE.DoubleSide
+    });
+    const copperMat = new THREE.MeshStandardMaterial({
+      color: 0xd97736, roughness: 0.25, metalness: 0.92, emissive: 0x3b1502, emissiveIntensity: 0.2
+    });
+    const silverMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0, roughness: 0.18, metalness: 0.95, emissive: 0x00e5ff, emissiveIntensity: 0
+    });
+    const aluminumMat = new THREE.MeshStandardMaterial({
+      color: 0x94a3b8, roughness: 0.30, metalness: 0.88, emissive: 0x0ea5e9, emissiveIntensity: 0.08
+    });
+    const rubberMat = new THREE.MeshStandardMaterial({
+      color: 0x1e293b, roughness: 0.70, metalness: 0.05, emissive: 0x06b6d4, emissiveIntensity: 0.22
+    });
+    const ceramicMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.6, metalness: 0.05 });
+    const triacMat = new THREE.MeshStandardMaterial({
+      color: 0x111827, roughness: 0.4, metalness: 0.25, emissive: 0xf97316, emissiveIntensity: 0.15
+    });
+    const heaterMat = new THREE.MeshStandardMaterial({
+      color: 0x71717a, roughness: 0.3, metalness: 0.88, emissive: 0xff4500, emissiveIntensity: 0.05
+    });
+
+    // Raiz da Ducha Zagonel ND (Morfologia Real em "L" Invertido / Pescoço Curvo)
+    const ndRoot = new THREE.Group();
+    ndRoot.position.set(0, 0.22, 0);
+    scene.add(ndRoot);
+
+    // 1. Subconjunto A: Bojo Traseiro Vertical Ovalado (Unidade de Parede, 204 mm altura)
+    const rearBodyGroup = new THREE.Group();
+    rearBodyGroup.position.set(0, 0, -0.68);
+    ndRoot.add(rearBodyGroup);
+
+    const rearProfile = [
+      new THREE.Vector2(0.01, -0.88),
+      new THREE.Vector2(0.14, -0.84),
+      new THREE.Vector2(0.30, -0.52),
+      new THREE.Vector2(0.44, -0.05),
+      new THREE.Vector2(0.46, 0.42),
+      new THREE.Vector2(0.40, 0.76),
+      new THREE.Vector2(0.01, 0.82)
+    ];
+    const rearGeo = new THREE.LatheGeometry(rearProfile, 44);
+    rearGeo.scale(1.0, 1.0, 0.82);
+    const rearMesh = new THREE.Mesh(rearGeo, shellMat);
+    rearMesh.renderOrder = 9;
+    rearBodyGroup.add(rearMesh);
+
+    const rearWire = new THREE.Mesh(rearGeo, rimWireMat);
+    rearWire.scale.set(1.005, 1.005, 0.825);
+    rearWire.renderOrder = 11;
+    rearBodyGroup.add(rearWire);
+
+    // Tampa Superior do Bojo Traseiro (abre em +Y na vista explodida)
+    const topCapGroup = new THREE.Group();
+    topCapGroup.position.set(0, 0.78, -0.68);
+    ndRoot.add(topCapGroup);
+    const topCapGeo = new THREE.CylinderGeometry(0.28, 0.40, 0.14, 36);
+    topCapGeo.scale(1.0, 1.0, 0.82);
+    topCapGroup.add(new THREE.Mesh(topCapGeo, shellMat));
+
+    // Entrada Traseira 1/2" BSP Horizontal na Zona Superior Úmida (y = +0.34)
+    const inletPipeGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.65, 24);
+    inletPipeGeo.rotateX(Math.PI / 2);
+    const inletPipe = new THREE.Mesh(inletPipeGeo, shellMat);
+    inletPipe.position.set(0, 0.34, -1.25);
+    ndRoot.add(inletPipe);
+
+    // 2. Subconjunto B: Haste Seletora Vertical Inferior (493 mm, saindo do bico inferior do bojo traseiro!)
+    const rodGroup = new THREE.Group();
+    rodGroup.position.set(0, -0.88, -0.68);
+    ndRoot.add(rodGroup);
+
+    // Luva / Colarinho Superior 100% Branco (mudança real Zagonel ND)
+    const collarGeo = new THREE.CylinderGeometry(0.11, 0.09, 0.22, 24);
+    const collarMesh = new THREE.Mesh(collarGeo, whiteCollarMat);
+    collarMesh.position.y = -0.08;
+    rodGroup.add(collarMesh);
+
+    const rodShaftGeo = new THREE.CylinderGeometry(0.036, 0.032, 1.85, 18);
+    const rodShaft = new THREE.Mesh(rodShaftGeo, whiteCollarMat);
+    rodShaft.position.y = -1.05;
+    rodGroup.add(rodShaft);
+
+    const rodTipGeo = new THREE.CylinderGeometry(0.065, 0.05, 0.22, 18);
+    const rodTip = new THREE.Mesh(rodTipGeo, whiteCollarMat);
+    rodTip.position.y = -1.96;
+    rodGroup.add(rodTip);
+
+    // 3. Subconjunto C: Braço/Pescoço Superior Curvo (324 mm) + Cabeça do Espalhador Frontal (Ø 120 mm, 78 furos)
+    const neckGroup = new THREE.Group();
+    ndRoot.add(neckGroup);
+
+    const neckCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.42, -0.52),
+      new THREE.Vector3(0, 0.56, 0.05),
+      new THREE.Vector3(0, 0.44, 0.62),
+      new THREE.Vector3(0, 0.16, 1.08)
+    ]);
+    const neckGeo = new THREE.TubeGeometry(neckCurve, 48, 0.34, 32, false);
+    neckGeo.scale(1.15, 0.78, 1.0);
+    const neckMesh = new THREE.Mesh(neckGeo, shellMat);
+    neckMesh.renderOrder = 9;
+    neckGroup.add(neckMesh);
+
+    const neckWire = new THREE.Mesh(neckGeo, rimWireMat);
+    neckWire.scale.set(1.155, 0.785, 1.004);
+    neckWire.renderOrder = 11;
+    neckGroup.add(neckWire);
+
+    // Cabeça Circular do Espalhador Frontal (Ø 120 mm, inclinada ~18°, 78 furos)
+    const spreaderGroup = new THREE.Group();
+    spreaderGroup.position.set(0, 0.02, 1.08);
+    spreaderGroup.rotation.x = THREE.MathUtils.degToRad(18);
+    ndRoot.add(spreaderGroup);
+
+    const headRimGeo = new THREE.CylinderGeometry(0.58, 0.64, 0.22, 48);
+    const headRimMesh = new THREE.Mesh(headRimGeo, shellMat);
+    headRimMesh.renderOrder = 9;
+    spreaderGroup.add(headRimMesh);
+
+    const crivoPlateGeo = new THREE.CylinderGeometry(0.61, 0.59, 0.04, 48);
+    const crivoPlate = new THREE.Mesh(crivoPlateGeo, whiteCollarMat);
+    crivoPlate.position.y = -0.11;
+    spreaderGroup.add(crivoPlate);
+
+    // 78 Bicos em 4 Anéis Concêntricos (8 + 14 + 22 + 34 = 78 furos)
+    const nozzleGeo = new THREE.CylinderGeometry(0.014, 0.011, 0.045, 8);
+    const nozzleMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a, roughness: 0.4, metalness: 0.6, emissive: 0x00e5ff, emissiveIntensity: 0.35
+    });
+    const ringDefs = [{ r: 0.13, n: 8 }, { r: 0.26, n: 14 }, { r: 0.39, n: 22 }, { r: 0.52, n: 34 }];
+    const nozzles = new THREE.InstancedMesh(nozzleGeo, nozzleMat, 78);
+    const dummy = new THREE.Object3D();
+    let ni = 0;
+    ringDefs.forEach(ring => {
+      for (let i = 0; i < ring.n; i++) {
+        const a = (i / ring.n) * Math.PI * 2;
+        dummy.position.set(Math.cos(a) * ring.r, -0.13, Math.sin(a) * ring.r);
+        dummy.updateMatrix();
+        nozzles.setMatrixAt(ni++, dummy.matrix);
+      }
+    });
+    nozzles.instanceMatrix.needsUpdate = true;
+    spreaderGroup.add(nozzles);
+
+    // 4. Órgãos Internos 3D: Tubo Hidráulico Fechado Superior (y = +0.20..+0.54) + Parede Divisória Estanque (y = +0.08) + Diafragma
+    const chamberMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.36, 32, 1, false), chamberMat);
+    chamberMesh.position.set(0, 0.36, -0.68);
+    chamberMesh.renderOrder = 4;
+    ndRoot.add(chamberMesh);
+
+    // Parede Divisória Estanque Horizontal + Anel O-ring (y = +0.08) isolando a Zona Inferior Seca
+    const bulkheadMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.43, 0.43, 0.045, 36),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.5, emissive: 0xfacc15, emissiveIntensity: 0.25 })
+    );
+    bulkheadMesh.scale.set(1.0, 1.0, 0.80);
+    bulkheadMesh.position.set(0, 0.08, -0.66);
+    ndRoot.add(bulkheadMesh);
+
+    const diaphragmGroup = new THREE.Group();
+    diaphragmGroup.position.set(0, 0.52, -0.68);
+    ndRoot.add(diaphragmGroup);
+
+    const diaphMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.32, 0.05, 32), rubberMat);
+    diaphragmGroup.add(diaphMesh);
+
+    const plungerGroup = new THREE.Group();
+    diaphragmGroup.add(plungerGroup);
+    const plunger = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.24, 16), ceramicMat);
+    plunger.position.y = 0.14;
+    plungerGroup.add(plunger);
+
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.032, 0.10), copperMat);
+    bridge.position.y = 0.25;
+    plungerGroup.add(bridge);
+
+    const padGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.025, 16);
+    const mpL = new THREE.Mesh(padGeo, silverMat); mpL.position.set(-0.15, 0.27, 0); plungerGroup.add(mpL);
+    const mpR = new THREE.Mesh(padGeo, silverMat); mpR.position.set(0.15, 0.27, 0); plungerGroup.add(mpR);
+
+    const sPts = [];
+    for (let i = 0; i <= 50; i++) {
+      const t = i / 50, a = t * 5 * Math.PI * 2;
+      sPts.push(new THREE.Vector3(Math.cos(a) * 0.11, 0.04 + t * 0.20, Math.sin(a) * 0.11));
+    }
+    const springMesh = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(sPts), 50, 0.012, 8, false), aluminumMat);
+    diaphragmGroup.add(springMesh);
+
+    const fixedContacts = new THREE.Group();
+    fixedContacts.position.set(0, 0.35, 0);
+    diaphragmGroup.add(fixedContacts);
+    const busGeo = new THREE.BoxGeometry(0.18, 0.032, 0.12);
+    const bL = new THREE.Mesh(busGeo, copperMat); bL.position.set(-0.17, 0.02, 0); fixedContacts.add(bL);
+    const bR = new THREE.Mesh(busGeo, copperMat); bR.position.set(0.17, 0.02, 0); fixedContacts.add(bR);
+    const fpL = new THREE.Mesh(padGeo, silverMat); fpL.position.set(-0.15, -0.005, 0); fixedContacts.add(fpL);
+    const fpR = new THREE.Mesh(padGeo, silverMat); fpR.position.set(0.15, -0.005, 0); fixedContacts.add(fpR);
+
+    // 5. Módulo Eletrônico TRIAC 60Hz + Potenciômetro + Dissipador Refrigerado a Água (na base do bojo traseiro)
+    const triacGroup = new THREE.Group();
+    triacGroup.position.set(0, -0.32, -0.64);
+    ndRoot.add(triacGroup);
+
+    const pcbMesh = new THREE.Mesh(
+      new THREE.BoxGeometry(0.36, 0.44, 0.035),
+      new THREE.MeshStandardMaterial({ color: 0x0f3828, roughness: 0.4, metalness: 0.3 })
+    );
+    triacGroup.add(pcbMesh);
+
+    const potMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.09, 20), aluminumMat);
+    potMesh.position.set(0, -0.14, 0.04);
+    triacGroup.add(potMesh);
+
+    const triacPkg = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.16, 0.06), triacMat);
+    triacPkg.position.set(0.06, 0.08, 0.04);
+    triacGroup.add(triacPkg);
+
+    const hsGroup = new THREE.Group();
+    hsGroup.position.set(0.06, 0.08, -0.05);
+    triacGroup.add(hsGroup);
+    hsGroup.add(new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.30, 0.04), aluminumMat));
+    for (let i = 0; i < 5; i++) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.28, 0.07), aluminumMat);
+      fin.position.set(-0.08 + i * 0.04, 0, -0.04);
+      hsGroup.add(fin);
+    }
+    const triacLight = new THREE.PointLight(0x22d3ee, 0.8, 2.0, 2);
+    triacLight.position.set(0.06, 0.08, 0.12);
+    triacGroup.add(triacLight);
+
+    // 6. Resistência Espiral Dupla Hélice de Níquel-Cromo (NiCr) no Pescoço Curvo / Câmara ND
+    const heaterGroup = new THREE.Group();
+    ndRoot.add(heaterGroup);
+
+    const supportCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0, 0.38, -0.42),
+      new THREE.Vector3(0, 0.48, 0.08),
+      new THREE.Vector3(0, 0.36, 0.58),
+      new THREE.Vector3(0, 0.18, 0.96)
+    ]);
+    const supportMesh = new THREE.Mesh(new THREE.TubeGeometry(supportCurve, 32, 0.048, 12, false), ceramicMat);
+    heaterGroup.add(supportMesh);
+
+    const coilPts = [];
+    for (let i = 0; i <= 260; i++) {
+      const u = i / 260;
+      const center = supportCurve.getPointAt(u);
+      const a = u * 18 * Math.PI * 2;
+      const r = 0.15 + Math.sin(u * Math.PI) * 0.04;
+      coilPts.push(new THREE.Vector3(
+        center.x + Math.cos(a) * r,
+        center.y + Math.sin(a) * r * 0.72,
+        center.z
+      ));
+    }
+    const coilMesh = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(coilPts), 260, 0.018, 8, false), heaterMat);
+    heaterGroup.add(coilMesh);
+
+    const thermalLight = new THREE.PointLight(0xff5500, 0, 4.5, 1.8);
+    thermalLight.position.set(0, 0.36, 0.45);
+    heaterGroup.add(thermalLight);
+
+    // 7. Sistema de Partículas Hidráulicas e Térmicas (Frio Ciano -> Quente Laranja)
+    function makeParticleTexture() {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 64;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.4, 'rgba(255,255,255,0.8)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    }
+
+    const PCOUNT = 640;
+    const pPos = new Float32Array(PCOUNT * 3);
+    const pCol = new Float32Array(PCOUNT * 3);
+    const pLife = new Float32Array(PCOUNT);
+    const pAng = new Float32Array(PCOUNT);
+    const pRad = new Float32Array(PCOUNT);
+    const pSpd = new Float32Array(PCOUNT);
+    for (let i = 0; i < PCOUNT; i++) {
+      pLife[i] = Math.random();
+      pAng[i] = Math.random() * Math.PI * 2;
+      pRad[i] = Math.sqrt(Math.random());
+      pSpd[i] = 0.82 + Math.random() * 0.4;
+    }
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+    pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+    const pMat = new THREE.PointsMaterial({
+      size: 0.12, map: makeParticleTexture(), vertexColors: true,
+      transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const waterPts = new THREE.Points(pGeo, pMat);
+    waterPts.frustumCulled = false;
+    waterPts.renderOrder = 6;
+    ndRoot.add(waterPts);
+
+    // Âncoras 3D para Projeção das Leader Lines 3D -> 2D
+    const anchors3D = {
+      rearBody: new THREE.Vector3(0, 0.15, -0.68),
+      rodCollar: new THREE.Vector3(0, -0.96, -0.68),
+      diaphragm: new THREE.Vector3(0, 0.58, -0.68),
+      contacts: new THREE.Vector3(0, 0.78, -0.68),
+      chamber: new THREE.Vector3(0, 0.36, -0.68),
+      dryZone: new THREE.Vector3(0, -0.38, -0.64),
+      triac: new THREE.Vector3(0.06, -0.24, -0.62),
+      heater: new THREE.Vector3(0, 0.38, 0.35),
+      spreader: new THREE.Vector3(0, -0.08, 1.12)
+    };
+
+    let currentTime = 0;
+    let isPlaying = true;
+    let showCaptions = true;
+    const state = { op: 0.90, ex: 0, wf: 0, pw: 0, dl: 0 };
+    const coldCol = new THREE.Color(0x00e5ff);
+    const warmCol = new THREE.Color(0xff6b1a);
+    const hotCol = new THREE.Color(0xffa94d);
+    const coilCold = new THREE.Color(0x71717a);
+    const coilHot = new THREE.Color(0xff5500);
+    const tmpCol = new THREE.Color();
+    const targetCam = new THREE.Vector3();
+    const targetLook = new THREE.Vector3();
+
+    function getDirector(t) {
+      let beat = SCRIPT_BEATS[SCRIPT_BEATS.length - 1];
+      let next = beat;
+      for (let i = 0; i < SCRIPT_BEATS.length; i++) {
+        if (t >= SCRIPT_BEATS[i].start && t < SCRIPT_BEATS[i].end) {
+          beat = SCRIPT_BEATS[i];
+          next = SCRIPT_BEATS[i + 1] || beat;
+          break;
+        }
+      }
+      const p = (t - beat.start) / Math.max(0.001, beat.end - beat.start);
+      const b = p > 0.72 ? (p - 0.72) / 0.28 : 0;
+      const k = b * b * (3 - 2 * b);
+      const L = (a, c) => a + (c - a) * k;
+      return {
+        beat, p,
+        cam: [L(beat.cam[0], next.cam[0]), L(beat.cam[1], next.cam[1]), L(beat.cam[2], next.cam[2])],
+        tgt: [L(beat.tgt[0], next.tgt[0]), L(beat.tgt[1], next.tgt[1]), L(beat.tgt[2], next.tgt[2])],
+        op: L(beat.op, next.op), ex: L(beat.ex, next.ex), wf: L(beat.wf, next.wf),
+        pw: L(beat.pw, next.pw), dl: L(beat.dl, next.dl)
+      };
+    }
+
+    function updateCaptionBeat(narration, prog) {
+      const words = narration.split(/\s+/).filter(Boolean);
+      const totalW = words.length;
+      const wIdx = Math.min(totalW - 1, Math.floor(prog * totalW));
+      const chunkStart = Math.floor(wIdx / 3) * 3;
+      const chunk = words.slice(chunkStart, chunkStart + 3);
+      const activeLocal = wIdx - chunkStart;
+      captionText.innerHTML = chunk.map((w, i) =>
+        `<span class="${i === activeLocal ? 'word-active' : ''}">${w}</span>`
+      ).join('');
+    }
+
+    function updateLeaderLines(labels) {
+      let svgHtml = '';
+      labels.forEach(lb => {
+        const localPt = anchors3D[lb.anchor] ? anchors3D[lb.anchor].clone() : new THREE.Vector3();
+        const worldPt = ndRoot.localToWorld(localPt);
+        const proj = worldPt.project(camera);
+        const sx = Math.max(95, Math.min(820, (proj.x * 0.5 + 0.5) * 1080));
+        const sy = Math.max(360, Math.min(940, (-proj.y * 0.5 + 0.5) * 1920));
+        const ex = Math.max(85, Math.min(840, sx + lb.dx));
+        const ey = Math.max(365, Math.min(945, sy + lb.dy));
+        const dir = ex >= sx ? 1 : -1;
+        const hx = Math.max(80, Math.min(855, ex + dir * 36));
+        const tx = dir > 0 ? hx + 10 : hx - 10;
+        const anchorAttr = dir > 0 ? 'start' : 'end';
+        svgHtml += `
+          <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="6" fill="#00e5ff" />
+          <circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="12" fill="none" stroke="#00e5ff" stroke-opacity="0.45" stroke-width="2" />
+          <polyline points="${sx.toFixed(1)},${sy.toFixed(1)} ${ex.toFixed(1)},${ey.toFixed(1)} ${hx.toFixed(1)},${ey.toFixed(1)}"
+            fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" />
+          <text x="${tx.toFixed(1)}" y="${(ey + 6).toFixed(1)}" text-anchor="${anchorAttr}"
+            fill="#f8fafc" font-family="monospace" font-size="23" font-weight="700"
+            style="paint-order: stroke; stroke: #090a0f; stroke-width: 7px;">${lb.text}</text>
+        `;
+      });
+      hudSvg.innerHTML = svgHtml;
+    }
+
+    btnPlay.onclick = () => {
+      isPlaying = !isPlaying;
+      if (isPlaying) userOrbiting = false;
+      btnPlay.textContent = isPlaying ? 'Pausar' : 'Reproduzir';
+      btnPlay.classList.toggle('active', isPlaying);
+    };
+    btnRestart.onclick = () => {
+      currentTime = 0; userOrbiting = false; isPlaying = true;
+      btnPlay.textContent = 'Pausar'; btnPlay.classList.add('active');
+    };
+    btnCaptions.onclick = () => {
+      showCaptions = !showCaptions;
+      captionBox.style.display = showCaptions ? 'block' : 'none';
+      btnCaptions.classList.toggle('active', showCaptions);
+    };
+    btnObs.onclick = () => document.body.classList.toggle('hud-hidden');
+    timeline.oninput = (e) => { currentTime = parseFloat(e.target.value); userOrbiting = false; };
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { e.preventDefault(); btnPlay.click(); }
+      if (e.key === 'r' || e.key === 'R') btnRestart.click();
+      if (e.key === 'h' || e.key === 'H') document.body.classList.toggle('hud-hidden');
+    });
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const elapsed = clock.getElapsedTime();
+
+      if (isPlaying) {
+        currentTime += dt;
+        if (currentTime >= TOTAL_DURATION) currentTime = 0;
+        timeline.value = currentTime.toFixed(2);
+      }
+
+      const d = getDirector(currentTime);
+      topTitle.textContent = d.beat.topTitle;
+      topBadge.textContent = d.beat.badge;
+      statePill.textContent = d.beat.pill;
+      updateCaptionBeat(d.beat.narration, d.p);
+      timeReadout.textContent = currentTime.toFixed(1).padStart(4, '0') + ' / ' + TOTAL_DURATION + 's';
+
+      if (!userOrbiting) {
+        targetCam.set(d.cam[0], d.cam[1], d.cam[2]);
+        targetLook.set(d.tgt[0], d.tgt[1], d.tgt[2]);
+        camera.position.lerp(targetCam, 1 - Math.exp(-3.5 * dt));
+        controls.target.lerp(targetLook, 1 - Math.exp(-4.2 * dt));
+      }
+      controls.update();
+
+      const damp = (cur, tgt, l) => THREE.MathUtils.lerp(cur, tgt, 1 - Math.exp(-l * dt));
+      state.op = damp(state.op, d.op, 6.0);
+      state.ex = damp(state.ex, d.ex, 6.0);
+      state.wf = damp(state.wf, d.wf, 6.0);
+      state.pw = damp(state.pw, d.pw, 4.5);
+      state.dl = damp(state.dl, d.dl, 8.5);
+
+      shellMat.opacity = state.op;
+      const xray = 1 - THREE.MathUtils.clamp((state.op - 0.14) / 0.78, 0, 1);
+      rimWireMat.opacity = xray * 0.16;
+      chamberMat.opacity = 0.16 + xray * 0.22;
+
+      const ex = state.ex;
+      topCapGroup.position.y = 0.78 + ex * 0.55;
+      neckGroup.position.y = ex * 0.22;
+      spreaderGroup.position.y = 0.02 - ex * 0.42;
+      spreaderGroup.position.z = 1.08 + ex * 0.24;
+      diaphragmGroup.position.y = 0.46 + ex * 0.25;
+      triacGroup.position.z = -0.64 - ex * 0.18;
+      rodGroup.rotation.y = state.pw * Math.PI * 1.2;
+
+      diaphMesh.scale.y = 1.0 + state.dl * 0.7;
+      plungerGroup.position.y = state.dl * 0.08;
+      springMesh.scale.y = 1 - state.dl * 0.25;
+
+      const closed = state.dl > 0.72;
+      const heat = closed ? state.pw : 0;
+      silverMat.emissiveIntensity = closed ? 0.6 + state.pw * 0.7 : 0;
+      triacMat.emissiveIntensity = 0.15 + heat * (0.4 + Math.abs(Math.sin(elapsed * 20)) * 0.8);
+      triacLight.intensity = 0.5 + heat * 1.6;
+
+      heaterMat.color.copy(coilCold).lerp(coilHot, heat * 0.88);
+      heaterMat.emissive.copy(coilHot).lerp(hotCol, Math.max(0, heat - 0.5) * 1.5);
+      heaterMat.emissiveIntensity = heat * heat * 3.4;
+      thermalLight.intensity = heat * 4.2;
+
+      pMat.opacity = state.wf * 0.92;
+      const flowRate = 0.2 + state.wf * 0.85;
+      for (let i = 0; i < PCOUNT; i++) {
+        pLife[i] += dt * 0.55 * pSpd[i] * flowRate;
+        if (pLife[i] >= 1) pLife[i] -= 1;
+        const life = pLife[i], ang = pAng[i], rad = pRad[i];
+        let x = 0, y = 0, z = 0, hm = 0;
+        if (life < 0.20) {
+          // Entrada traseira superior 1/2" BSP (y = +0.34)
+          const s = life / 0.20, r = rad * 0.07;
+          x = Math.cos(ang) * r;
+          y = 0.34 + Math.sin(ang) * r * 0.7;
+          z = THREE.MathUtils.lerp(-1.55, -0.68, s);
+        } else if (life < 0.42) {
+          // Subindo EXCLUSIVAMENTE pelo tubo fechado superior (y = +0.26..+0.52) até o diafragma
+          const s = (life - 0.20) / 0.22, sw = ang + s * 2.4, r = 0.05 + rad * 0.14;
+          x = Math.cos(sw) * r;
+          z = -0.68 + Math.sin(sw) * r * 0.78;
+          y = THREE.MathUtils.lerp(0.26, 0.52, s);
+          hm = 0.0;
+        } else if (life < 0.72) {
+          // Atravessando o pescoço curvo e a resistência espiral NiCr
+          const s = (life - 0.42) / 0.30, sw = ang + s * 5.0, r = 0.06 + rad * 0.18;
+          const pt = supportCurve.getPointAt(s);
+          x = pt.x + Math.cos(sw) * r;
+          y = pt.y + Math.sin(sw) * r * 0.72;
+          z = pt.z;
+          hm = heat * Math.pow(s, 0.82);
+        } else {
+          // Jorrando pelos 78 furos do espalhador frontal Ø 120 mm
+          const s = (life - 0.72) / 0.28, r = 0.10 + rad * 0.48 + s * 0.25;
+          x = Math.cos(ang) * r;
+          z = 1.08 + Math.sin(ang) * r + s * 0.45;
+          y = THREE.MathUtils.lerp(-0.12 - ex * 0.42, -2.35, s);
+          hm = heat;
+        }
+        pPos[i * 3] = x; pPos[i * 3 + 1] = y; pPos[i * 3 + 2] = z;
+        tmpCol.copy(coldCol).lerp(warmCol, hm);
+        if (hm > 0.7) tmpCol.lerp(hotCol, (hm - 0.7) * 1.4);
+        pCol[i * 3] = tmpCol.r; pCol[i * 3 + 1] = tmpCol.g; pCol[i * 3 + 2] = tmpCol.b;
+      }
+      pGeo.attributes.position.needsUpdate = true;
+      pGeo.attributes.color.needsUpdate = true;
+
+      renderer.render(scene, camera);
+      updateLeaderLines(d.beat.labels || []);
+    }
+    animate();
+  })();
+  </script>
+</body>
+</html>
