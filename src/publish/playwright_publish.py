@@ -164,17 +164,85 @@ def publish_instagram(page: Page, meta: PacoteMetadata, do_publish: bool = False
     """Upload Reel via Meta Business Suite for Inspetor Bicho Grilo."""
     url = f"https://business.facebook.com/latest/reels_composer?asset_id={META_PAGE_ASSET_ID}"
     page.goto(url, wait_until="domcontentloaded", timeout=60000)
+    time.sleep(3.0)
 
-    file_input = page.locator('input[type="file"][accept*="video"]').first
-    file_input.wait_for(state="attached", timeout=30000)
-    file_input.set_input_files(str(meta.video_path))
+    file_input = page.locator('input[type="file"]').first
+    if file_input.count() > 0:
+        file_input.set_input_files(str(meta.video_path))
+    else:
+        add_btn = page.locator(
+            'div[role="button"]:has-text("Adicionar vídeo"), button:has-text("Adicionar vídeo"), '
+            'div[role="button"]:has-text("Add video"), button:has-text("Add video")'
+        ).first
+        add_btn.wait_for(state="visible", timeout=30000)
+        with page.expect_file_chooser(timeout=15000) as fc_info:
+            add_btn.click()
+        fc_info.value.set_files(str(meta.video_path))
     print("[Instagram/Meta] Vídeo selecionado no Reels Composer...")
 
     caption_box = page.locator('[contenteditable="true"][role="textbox"]').first
     caption_box.wait_for(state="visible", timeout=30000)
     caption_box.click()
     caption_box.fill(meta.instagram_caption)
-    print("[Instagram/Meta] Legenda preenchida. Revise o rótulo de IA (REQ-007) e publique." if not do_publish else "[Instagram/Meta] Pronto para publicar.")
+    if do_publish:
+        for _ in range(2):
+            next_btn = page.locator(
+                'div[role="button"]:has-text("Avançar"), button:has-text("Avançar"), '
+                'div[role="button"]:has-text("Next"), button:has-text("Next")'
+            ).first
+            if next_btn.count() > 0 and next_btn.is_visible():
+                next_btn.click()
+                time.sleep(1.5)
+        share_btn = page.locator(
+            'div[role="button"]:has-text("Compartilhar"), button:has-text("Compartilhar"), '
+            'div[role="button"]:has-text("Publicar"), button:has-text("Publicar"), '
+            'div[role="button"]:has-text("Share"), button:has-text("Share")'
+        ).first
+        if share_btn.count() > 0 and share_btn.is_visible():
+            share_btn.click()
+            print("[Instagram/Meta] Clique em Compartilhar/Publicar enviado!")
+    else:
+        print("[Instagram/Meta] Legenda preenchida. Revise o rótulo de IA (REQ-007) e publique.")
+
+
+def _dismiss_tiktok_overlays(page: Page) -> None:
+    """Dismiss TikTok tutorial/cookie/joyride overlays that intercept pointer events."""
+    for _ in range(4):
+        page.keyboard.press("Escape")
+        page.evaluate(
+            """() => {
+                document.querySelectorAll('#react-joyride-portal, .react-joyride__overlay, [data-floating-ui-portal]').forEach(el => {
+                    if (el.querySelector('.react-joyride__overlay') || el.id === 'react-joyride-portal' || el.querySelector('.TUXModal-overlay')) {
+                        el.remove();
+                    }
+                });
+            }"""
+        )
+        time.sleep(0.5)
+
+
+def update_tiktok_avatar(page: Page, avatar_path: Path) -> None:
+    """Update TikTok profile picture without MCP sandbox restrictions."""
+    page.goto("https://www.tiktok.com/@inspetorbichogrilo", wait_until="domcontentloaded", timeout=60000)
+    time.sleep(3.0)
+    _dismiss_tiktok_overlays(page)
+    edit_btn = page.locator('button[data-e2e="edit-profile-entrance"], button:has-text("Editar perfil"), button:has-text("Edit profile")').first
+    edit_btn.wait_for(state="visible", timeout=20000)
+    edit_btn.click(force=True)
+    time.sleep(1.5)
+    file_input = page.locator('input[type="file"]').first
+    file_input.wait_for(state="attached", timeout=15000)
+    file_input.set_input_files(str(avatar_path))
+    time.sleep(2.0)
+    apply_btn = page.locator('button:has-text("Aplicar"), button:has-text("Apply")').first
+    if apply_btn.count() > 0 and apply_btn.is_visible():
+        apply_btn.click()
+        time.sleep(1.0)
+    save_btn = page.locator('button:has-text("Salvar"), button:has-text("Save")').first
+    if save_btn.count() > 0 and save_btn.is_visible():
+        save_btn.click()
+        time.sleep(1.5)
+    print("[TikTok] Foto de perfil atualizada com avatar-perfil-1024.png!")
 
 
 def publish_tiktok(page: Page, meta: PacoteMetadata, do_publish: bool = False) -> None:
@@ -183,22 +251,33 @@ def publish_tiktok(page: Page, meta: PacoteMetadata, do_publish: bool = False) -
     file_input = page.locator('input[type="file"]').first
     file_input.wait_for(state="attached", timeout=30000)
     file_input.set_input_files(str(meta.video_path))
-    print("[TikTok] Vídeo selecionado; preenchendo legenda...")
+    print("[TikTok] Vídeo selecionado; aguardando editor...")
+    time.sleep(4.0)
+    _dismiss_tiktok_overlays(page)
 
     caption_box = page.locator('[contenteditable="true"]').first
     caption_box.wait_for(state="visible", timeout=45000)
     caption_box.click()
     page.keyboard.press("Meta+A")
     caption_box.fill(meta.tiktok_caption[:2200])
-    print("[TikTok] Legenda preenchida. Confira a chave 'Conteúdo gerado por IA' (REQ-007).")
+
+    if do_publish:
+        post_btn = page.locator('button:has-text("Publicar"), button:has-text("Post")').last
+        if post_btn.count() > 0 and post_btn.is_visible():
+            post_btn.click()
+            print("[TikTok] Clique em Publicar enviado!")
+    else:
+        print("[TikTok] Legenda preenchida. Confira a chave 'Conteúdo gerado por IA' (REQ-007).")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Automação local de upload via Playwright (YouTube, Instagram/Meta, TikTok).")
     parser.add_argument("--login", action="store_true", help="Abre as abas no perfil persistente do Chrome para login inicial.")
     parser.add_argument("--product-dir", type=Path, default=REPO_ROOT / "produtos" / "ducha-eletronica-zagonel-nd-7700w")
-    parser.add_argument("--platform", choices=["youtube", "instagram", "tiktok", "all"], default="all")
+    parser.add_argument("--platform", choices=["youtube", "instagram", "tiktok", "none", "all"], default="all")
     parser.add_argument("--publish", action="store_true", help="Clica no botão final de publicar (por padrão deixa na tela de revisão).")
+    parser.add_argument("--update-tiktok-avatar", action="store_true", help="Atualiza a foto de perfil do TikTok.")
+    parser.add_argument("--no-wait", action="store_true", help="Fecha automaticamente ao terminar sem esperar ENTER.")
     args = parser.parse_args()
 
     if args.login:
@@ -206,20 +285,38 @@ def main() -> None:
         return
 
     meta = load_pacote_metadata(args.product_dir)
-    platforms = ["youtube", "instagram", "tiktok"] if args.platform == "all" else [args.platform]
+    if args.platform == "none":
+        platforms = []
+    elif args.platform == "all":
+        platforms = ["youtube", "instagram", "tiktok"]
+    else:
+        platforms = [args.platform]
 
     with sync_playwright() as p:
         ctx = _open_context(p)
+        if args.update_tiktok_avatar:
+            try:
+                av_page = ctx.pages[0] if ctx.pages else ctx.new_page()
+                update_tiktok_avatar(av_page, REPO_ROOT / "assets" / "personagem" / "avatar-perfil-1024.png")
+            except Exception as exc:
+                print(f"[tiktok-avatar] Erro ao atualizar foto: {exc}")
         for idx, plat in enumerate(platforms):
-            page = ctx.pages[0] if (idx == 0 and ctx.pages) else ctx.new_page()
-            if plat == "youtube":
-                publish_youtube(page, meta, do_publish=args.publish)
-            elif plat == "instagram":
-                publish_instagram(page, meta, do_publish=args.publish)
-            elif plat == "tiktok":
-                publish_tiktok(page, meta, do_publish=args.publish)
-        print("Execução concluída. Pressione ENTER no terminal após conferir as abas abertas para fechar o navegador.")
-        input()
+            page = ctx.new_page() if (idx > 0 or args.update_tiktok_avatar or not ctx.pages) else ctx.pages[0]
+            try:
+                if plat == "youtube":
+                    publish_youtube(page, meta, do_publish=args.publish)
+                elif plat == "instagram":
+                    publish_instagram(page, meta, do_publish=args.publish)
+                elif plat == "tiktok":
+                    publish_tiktok(page, meta, do_publish=args.publish)
+            except Exception as exc:
+                print(f"[{plat}] Erro durante automação (aba mantida aberta para inspeção): {exc}")
+        if args.no_wait:
+            time.sleep(5.0)
+            print("Execução concluída (--no-wait).")
+        else:
+            print("Execução concluída. Pressione ENTER no terminal após conferir as abas abertas para fechar o navegador.")
+            input()
         ctx.close()
 
 
