@@ -34,7 +34,9 @@ def _extract_blockquote(section_text: str) -> str:
     lines = []
     for line in section_text.splitlines():
         if line.strip().startswith(">"):
-            lines.append(re.sub(r"^>\s?", "", line.strip()))
+            clean = re.sub(r"^>\s?", "", line.strip())
+            clean = clean.replace("**", "").replace("`", "")
+            lines.append(clean)
     return "\n".join(lines).strip()
 
 
