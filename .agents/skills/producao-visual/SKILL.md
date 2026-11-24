@@ -24,11 +24,12 @@ Fluxo visual e técnico derivado de [0005-pipeline-hibrido-25d-e-flow.md](../../
 ## 2. Produção técnica e stack (`Portão 3`)
 
 - **Cenas externas e uso prático (`flow_ia`):** após aprovação do Portão 2, acione `browser` via `invoke_subagent` na Web UI do Google Flow (`Google AI Pro · Omni Flash 1.2 · 360p` guiado por foto real, `1 crédito/s` até `10s`). Valide o movimento internamente e promova os clipes aprovados para **`1080p` a `0` crédito**.
+- **Integridade autoral e comercial de mídia externa:** componha cenas externas exclusivamente com ativos oficiais do fabricante, gravação própria, acervos com licença comercial explícita (`CC0`/domínio público) ou recriação original (`flow_ia` / `Determinístico`), preservando a operação afiliada livre de trechos virais de terceiros sem autorização (Lei nº 9.610/98, arts. 29 e 46, verificada em `2026-11-20`).
 - **Visualizações e composições locais (`Determinístico`):** produza animações em **Python (`numpy` + `Pillow`) + `ffmpeg` (`overlay`/`videotoolbox` com fallback `libx264`)** (e estúdio interativo `Three.js` quando aplicável), adaptando a técnica à lente do produto:
   - na lente *Engenharia / Raio-X 3D*: morfologia fiel, compartimentos fisicamente estanques e fluxos confinados aos seus dutos;
   - na lente *Processo / "Como é Feito"*: etapas de transformação animadas, diagramas claros e texturas/ativos reais;
   - na lente *Teste Prático / Comparativo*: composições dinâmicas com fotos/clipes reais e comparativos nítidos.
-  Sempre respeite a área segura e a legibilidade definidas em [.agents/formato/biblia.md](../../formato/biblia.md).
+  Sempre respeite a área segura, o ajuste tipográfico sem truncamento dentro de molduras, a ancoragem de apontadores na camada visível ativa e a legibilidade definidas em [.agents/formato/biblia.md](../../formato/biblia.md).
 - **Voz comercial e *lip-sync* PT-BR:** sintetize a locução final via **`Azure AI Speech F0`** (checando credenciais apenas com `test -f` sem ler `.env*`) ou fallback offline **`Piper pt_BR`** em CPU, aplicando *lip-sync* determinístico grafema→visema em Python no `Rig 2.5D` e trilha/SFX sob licença comercial válida (`YouTube Audio Library`/`CC0` ou áudio nativo Flow).
 - **Geração de imagem por IA (`REQ-012`):** quando estritamente necessária, use `image-generator` via `invoke_subagent` (ou fallback `gemini-api` via `run_command`) em `512px` (`0.5K`) para rascunhos e `1K+` apenas para arte final aprovada.
 

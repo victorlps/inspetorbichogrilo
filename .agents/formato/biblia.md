@@ -29,7 +29,7 @@ Em vez de um molde único, `@Carlos` e `@Steve` escolhem no Portão 2 a lente (o
 
 ## 3. Direção de Arte, HUD e Presença do Inspetor (`@Steve`)
 
-- **HUD sob demanda (nunca por obrigação):** use apenas os elementos que ajudam o espectador a entender a cena (ex.: identificador discreto, `1 a 2` apontadores curtos de `1 a 3 palavras` ou pílula de benefício). Cenas de uso real podem rodar limpas apenas com a legenda dinâmica.
+- **HUD sob demanda e leitura instantânea:** use apenas os elementos que ajudam o espectador leigo a entender a cena em leitura rápida sem pausar (ex.: identificador discreto, `1 a 2` apontadores curtos de `1 a 3 palavras` ancorados diretamente sobre o elemento visível na camada ativa — foto real, vídeo ou 3D — sem sobrepor outras molduras, e pílula de benefício em português cotidiano, reservando tabelas ou pares densos de medidas para `pacote.md`). Cenas de uso real podem rodar limpas apenas com a legenda dinâmica.
 - **Presença do Inspetor (`Rig 2.5D`):** livre para entrar na abertura, em PiP comentando um teste/processo, em reações pontuais ou no fechamento — sempre respeitando a área segura e sem cobrir o foco principal da cena.
 
 ---
@@ -45,3 +45,5 @@ Em vez de um molde único, `@Carlos` e `@Steve` escolhem no Portão 2 a lente (o
 ## 5. Referências Externas de Qualidade
 
 As referências visuais de qualidade desta bíblia devem vir exclusivamente de referências externas aprovadas pelo usuário (não de entregas internas ainda em calibração). Esta seção permanece aberta para catalogar os quadros e links externos de referência conforme forem selecionados.
+
+- **Estilo Raio-X / Engenharia por Dentro (`voceaprendeu.shop` — `@voceaprendeu` e `@teensinei`, informado pelo usuário e lido em `2026-11-20`):** palco escuro limpo com modelo 3D translúcido em movimento contínuo, *leader lines* finas de `1 a 3 palavras`, pílula única de estado físico e legenda dinâmica com palavra tônica destacada e sublinhada em amarelo (`#facc15`).
