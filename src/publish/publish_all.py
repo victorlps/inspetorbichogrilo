@@ -23,7 +23,7 @@ VITRINE_LIVE_JSON = "https://victorlps.github.io/inspetorbichogrilo/catalogo.jso
 
 
 def _resilient_git_push() -> None:
-    """Push unpushed commits incrementally with 500MB http.postBuffer to avoid GitHub HTTP 408 on video packs."""
+    """Push unpushed commits incrementally over HTTP/1.1 to avoid GitHub HTTP 408 on video packs."""
     revs_out = subprocess.check_output(
         ["git", "rev-list", "--reverse", "origin/master..HEAD"],
         cwd=REPO_ROOT,
@@ -41,8 +41,6 @@ def _resilient_git_push() -> None:
                     "git",
                     "-c",
                     "http.version=HTTP/1.1",
-                    "-c",
-                    "http.postBuffer=524288000",
                     "-c",
                     "http.lowSpeedLimit=1000",
                     "-c",
@@ -90,8 +88,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Fluxo autônomo completo de publicação pós-aceite (Portão 3 -> Vitrine -> Redes).")
     parser.add_argument("--product-dir", type=Path, required=True, help="Caminho para produtos/<slug>")
     parser.add_argument("--platform", choices=["youtube", "instagram", "tiktok", "all", "none"], default="all")
+    parser.add_argument("--login-timeout", type=int, default=300, help="Segundos aguardando login único em abas separadas quando necessário")
+    parser.add_argument("--allow-canonical", action="store_true", help="Permite continuar caso alguma conta secundária de afiliado permaneça deslogada")
     parser.add_argument("--skip-push", action="store_true", help="Pula git push caso já publicado no remoto")
-    parser.add_argument("--offscreen", action="store_true", help="Executa navegador fora da área visível")
+    parser.add_argument("--offscreen", action="store_true", help="Executa upload de redes sociais fora da área visível")
     args = parser.parse_args()
 
     prod_dir = args.product_dir.resolve()
@@ -105,7 +105,7 @@ def main() -> int:
     json.loads((REPO_ROOT / "vitrine" / "catalogo.json").read_text(encoding="utf-8"))
 
     print(f"[2/5] Sincronizando links curtos de afiliado para {code}...")
-    aff_res = sync_affiliate_links(code=code, product_dir=prod_dir)
+    aff_res = sync_affiliate_links(code=code, product_dir=prod_dir, wait_for_login_s=args.login_timeout)
     print("  Afiliados:", json.dumps(aff_res, ensure_ascii=False))
     if aff_res.get("converted", 0) > 0:
         subprocess.run(
@@ -119,14 +119,21 @@ def main() -> int:
             check=True,
         )
 
+    if "mercado_livre_afiliados" in aff_res.get("session_missing", []) and not args.allow_canonical:
+        print(
+            "ERRO: Programa principal (Mercado Livre Afiliados) ainda não autenticado no perfil Playwright — interrompendo antes de publicar sem comissão.",
+            file=sys.stderr,
+        )
+        return 2
+
     if not args.skip_push:
-        print("[3/5] Publicando vitrine no GitHub Pages (git push incremental)...")
+        print("[3/5] Publicando vitrine no GitHub Pages (git push incremental HTTP/1.1)...")
         _resilient_git_push()
     else:
         print("[3/5] git push ignorado (--skip-push).")
 
     print(f"[4/5] Aguardando {code} ficar ativo em {VITRINE_LIVE_JSON}...")
-    is_live = _wait_for_vitrine_live(code, timeout_s=110)
+    is_live = _wait_for_vitrine_live(code, timeout_s=120)
     print(f"  Vitrine pública {code} online: {is_live}")
 
     if args.platform == "none":
