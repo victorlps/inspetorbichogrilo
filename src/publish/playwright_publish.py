@@ -279,8 +279,14 @@ def publish_tiktok(page: Page, meta: PacoteMetadata, do_publish: bool = False) -
         post_btn.wait_for(state="visible", timeout=60000)
         expect(post_btn).to_be_enabled(timeout=90000)
         post_btn.click()
+        time.sleep(2.5)
+        confirm_btn = page.locator(
+            'button:has-text("Publicar agora"), button:has-text("Post now"), button:has-text("Continuar")'
+        ).last
+        if confirm_btn.count() > 0 and confirm_btn.is_visible():
+            confirm_btn.click()
         print("[TikTok] Clique em Publicar enviado! Aguardando confirmação...")
-        time.sleep(10.0)
+        time.sleep(15.0)
     else:
         print("[TikTok] Legenda preenchida. Confira a chave 'Conteúdo gerado por IA' (REQ-007).")
 

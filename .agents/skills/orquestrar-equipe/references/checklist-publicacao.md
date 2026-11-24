@@ -73,3 +73,12 @@ Guia operacional padrão para fechar o **Portão 3**, atualizar a **vitrine na b
 ## 5. Encerramento e Retro (`REQ-013`)
 
 Após publicar, `@Mike` conduz a retro curta com a sala (`@Curador`, `@Carlos`, `@Steve`), classifica os aprendizados em formato (`biblia.md`), ofício (skills/agentes) ou insumo, e submete o diff consolidado ao `@Revisor-Skills` antes do commit isolado no Git.
+
+---
+
+## 6. Padrões Técnicos Consolidados no Produto-Piloto (`IBG-001`)
+
+- **Legendas dinâmicas com Azure AI Speech:** tratar pontuação isolada emitida em `WordBoundary` descartando vírgulas, pontos finais e dois-pontos soltos, anexando `?` e `!` à palavra anterior e mantendo `phrase_replacements` sem pontuação embutida.
+- **Comparação visual de acabamento externo:** exibir fotos reais lado a lado em grande destaque na área segura ao comparar detalhes externos do produto.
+- **YouTube Shorts e OAuth:** manter o título em até `100` caracteres preservando `#shorts` íntegro, validar o `channel_id` da marca (`UCgIp02Q0H3rXsNwL-kDdFbA`) antes do upload via API e habilitar *Recursos Avançados* no Studio para fixar comentários e tornar links clicáveis.
+- **Publicador Playwright (`src/publish/playwright_publish.py`):** remover marcações Markdown (`**` e `` ` ``) ao extrair legendas de `pacote.md`, remover *overlays* de tutorial no TikTok Studio e aguardar o botão `Compartilhar`/`Publicar` ficar habilitado após o upload completo do MP4.
