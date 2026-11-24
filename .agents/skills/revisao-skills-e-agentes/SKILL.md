@@ -17,8 +17,8 @@ Régua objetiva usada pelo `@Revisor-Skills` para auditar o diff consolidado da 
    - `SKILL.md` traz `name` em *kebab-case* igual ao diretório e `description` em 3ª pessoa; materiais extensos ficam em `references/`;
    - Agentes em `.agents/plugins/<nome>/agents/*.md` declaram `name`, `description`, `tools` mínimas ao papel e `subagent: true` / `mainAgent: false`;
    - `AGENTS.md` respeita o teto de **`24 KB` (`24.000` bytes)** e orçamento agregado de **`20.000` tokens** (verificado via `wc -c`).
-2. **Linguagem de papéis e afirmativa:** agentes e skills descrevem o que cada papel possui, com quem colabora e os critérios positivos esperados, livres de listas defensivas de proibições.
-3. **Fonte única (*single source of truth*):** parâmetros de formato (área segura, legendas, HUD, teto de palavras) moram em `.agents/formato/biblia.md`; ferramentas e custos moram em `docs/decisoes/`; skills e agentes apontam para essas fontes sem duplicar valores.
+2. **Linguagem de papéis e afirmativa:** agentes e skills descrevem de forma positiva o que cada papel possui, com quem colabora e os critérios esperados de execução.
+3. **Fonte única (*single source of truth*):** parâmetros de formato (identidade editorial, área segura, legendas, rótulos espaciais e orçamento de palavras em tela) moram em `.agents/formato/biblia.md`; ferramentas e custos moram em `docs/decisoes/`; skills e agentes apontam para essas fontes evitando duplicar valores numéricos.
 4. **Evidência e honestidade numérica:** fatos externos trazem fonte e data de leitura (ou link para `docs/`); convenções calibráveis estão vinculadas a um ADR.
 5. **Correção na fonte (*fix at the source*) e Replicabilidade (`docs/visao.md`):** cada ajuste vai para o lugar certo (padrão de formato → `biblia.md`; método de ofício → skill/agente do dono) e funciona para qualquer produto ou nicho, mantendo particularidades de um produto apenas em `produtos/<slug>/`.
 
