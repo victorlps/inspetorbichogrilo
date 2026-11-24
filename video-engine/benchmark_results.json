@@ -1,0 +1,100 @@
+{
+  "environment": {
+    "measured_date": "2026-11-24",
+    "cpu": "Intel(R) Core(TM) i7-5557U CPU @ 3.10GHz",
+    "logical_threads": 4,
+    "ram_gb": 16,
+    "gpu": "Intel Iris Graphics 6100",
+    "node_version": "v25.9.0",
+    "python_version": "3.14.7",
+    "chrome_version": "158.0.8127.88",
+    "remotion_npm_packages_added": 247
+  },
+  "pillow_baseline": {
+    "engine": "Python Pillow + numpy + ffmpeg (h264_videotoolbox)",
+    "clip_duration_s": 5.0,
+    "frames": 120,
+    "resolution": "1080x1920",
+    "concurrency": 1,
+    "wall_time_s": 155.23,
+    "realtime_factor_x": 31.05,
+    "projected_50s_video_s": 1552.3,
+    "peak_rss_mb": 177.1,
+    "file_size_kb": 1121.8,
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1080,
+          "height": 1920,
+          "nb_frames": "120"
+        }
+      ],
+      "format": {
+        "duration": "5.000000",
+        "size": "1148684"
+      }
+    }
+  },
+  "playwright_html_svg": {
+    "engine": "Playwright Headless Chrome + HTML5/CSS/SVG (2 tabs) + ffmpeg (h264_videotoolbox)",
+    "clip_duration_s": 5.0,
+    "frames": 120,
+    "resolution": "1080x1920",
+    "concurrency": 2,
+    "wall_time_s": 24.39,
+    "realtime_factor_x": 4.88,
+    "projected_50s_video_s": 243.9,
+    "peak_rss_mb": 236.2,
+    "file_size_kb": 3057.7,
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1080,
+          "height": 1920,
+          "nb_frames": "120"
+        }
+      ],
+      "format": {
+        "duration": "5.000000",
+        "size": "3131053"
+      }
+    }
+  },
+  "remotion_react": {
+    "engine": "Remotion 4.0.546 (React 18 + TypeScript + System Chrome, concurrency=2)",
+    "clip_duration_s": 5.0,
+    "frames": 120,
+    "resolution": "1080x1920",
+    "concurrency": 2,
+    "wall_time_s": 86.08,
+    "realtime_factor_x": 17.22,
+    "projected_50s_video_s": 860.8,
+    "peak_rss_mb": 1346.5,
+    "file_size_kb": 666.3,
+    "probe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "width": 1080,
+          "height": 1920,
+          "nb_frames": "120",
+          "side_data_list": [
+            {}
+          ]
+        }
+      ],
+      "format": {
+        "duration": "5.000000",
+        "size": "682342"
+      }
+    }
+  }
+}

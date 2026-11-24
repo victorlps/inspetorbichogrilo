@@ -1,0 +1,22 @@
+{
+  "name": "ibg-video-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Motor programático 9:16 (1080x1920) do Inspetor Bicho Grilo",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:bench": "remotion render src/index.ts BenchScene _bench_out/remotion_bench.mp4 --concurrency=2 --browser-executable=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\""
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.280",
+    "@remotion/renderer": "^4.0.280",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.280"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.12",
+    "typescript": "^5.7.2"
+  }
+}

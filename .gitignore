@@ -8,3 +8,7 @@ __pycache__/
 .DS_Store
 planos/
 _preview_build/
+video-engine/node_modules/
+video-engine/out/
+video-engine/_bench_out/
+video-engine/.remotion/
