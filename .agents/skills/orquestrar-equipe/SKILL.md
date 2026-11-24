@@ -34,7 +34,7 @@ Para cada produto (`produtos/<slug>/`):
 ### Portão 3 — Vídeo Final e Pacote (`REQ-005` a `REQ-008`, `REQ-014`)
 1. Na mesma sala de produção, `@Steve` executa clipes Flow `360p` (e *preview* interno se necessário), promove a `1080p` (`0` crédito até `10s`), sintetiza voz comercial (`Azure F0` ou `Piper pt_BR`), renderiza `video_final_1080p.mp4` e integra os textos editoriais do `@Carlos` em `pacote.md` (com `código curto`, link(s) principal(is) e aviso `REQ-007`).
 2. `@Curador` emite parecer final de fidelidade sobre os quadros do vídeo e `pacote.md`; Mike executa as checagens determinísticas locais e aciona um **novo Espectador frio** (instância limpa) apenas com `video_final_1080p.mp4` (respeitando até `3` rodadas internas de correção na mesma instância).
-3. Apresente ao usuário `video_final_1080p.mp4`, `pacote.md`, parecer do `@Curador` e relato do **Espectador frio**. Após o aceite final no chat, **Mike** atualiza a vitrine estática na bio (`REQ-008`).
+3. Apresente ao usuário `video_final_1080p.mp4`, `pacote.md`, parecer do `@Curador` e relato do **Espectador frio**. Após o aceite final no chat, **Mike** atualiza a vitrine estática na bio (`REQ-008`) e conduz a publicação seguindo [checklist-publicacao.md](references/checklist-publicacao.md).
 
 ## 3. Retro Consolidada e Evolução (`REQ-013`)
 
