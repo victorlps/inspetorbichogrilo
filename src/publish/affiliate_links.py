@@ -68,18 +68,19 @@ def _is_amz_sitestripe_ready(page: Page) -> bool:
 
 def _generate_ml_short_link_on_page(page: Page, target_url: str) -> str | None:
     # Always load clean Linkbuilder state so 'Gerar' button is fresh for every URL
-    page.goto(ML_LINKBUILDER_URL, wait_until="domcontentloaded", timeout=30000)
+    page.goto(ML_LINKBUILDER_URL, wait_until="domcontentloaded", timeout=60000)
     time.sleep(2.5)
     if not _is_ml_logged_in(page):
         return None
 
-    # Paste target URL specifically into Linkbuilder's #url-0 textarea (not top search bar!)
+    # Paste target URL specifically into Linkbuilder's #url-0 textarea firing React input events
     box = page.locator("textarea#url-0").first
-    box.wait_for(state="visible", timeout=15000)
+    box.wait_for(state="visible", timeout=20000)
     box.click()
-    box.fill("")
-    box.fill(target_url)
-    time.sleep(0.5)
+    page.keyboard.press("Meta+A")
+    page.keyboard.press("Backspace")
+    page.keyboard.insert_text(target_url)
+    time.sleep(1.0)
 
     before_vals = set(
         re.findall(
@@ -88,10 +89,12 @@ def _generate_ml_short_link_on_page(page: Page, target_url: str) -> str | None:
         )
     )
 
-    gen_btn = page.locator("button:has-text('Gerar')").first
-    if gen_btn.count() == 0:
+    gen_btn = page.locator("button:has-text('Gerar'):not([disabled])").first
+    try:
+        gen_btn.wait_for(state="visible", timeout=10000)
+        gen_btn.click()
+    except Exception:
         return None
-    gen_btn.click()
 
     for _ in range(20):
         time.sleep(0.8)

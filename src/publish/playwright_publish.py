@@ -20,6 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 PW_PROFILE_DIR = Path.home() / ".cache" / "inspetorbichogrilo-pw-profile"
 YOUTUBE_CHANNEL_ID = "UCgIp02Q0H3rXsNwL-kDdFbA"  # @inspetorbichogrilo
 META_PAGE_ASSET_ID = "1492341333956556"  # Inspetor Bicho Grilo
+META_BUSINESS_ID = "183134816297852"
 
 
 @dataclass
@@ -76,6 +77,9 @@ def load_pacote_metadata(product_dir: Path) -> PacoteMetadata:
     yt_title_m = re.search(r"- \*\*Título sugerido[^\n]*\n\s*`([^`]+)`", yt_block)
     yt_title = yt_title_m.group(1).strip() if yt_title_m else product_dir.name
     yt_desc = _extract_blockquote(yt_block)
+    # YouTube Studio forbids literal '<' and '>' in title and description (disables Next button!)
+    yt_title = yt_title.replace("<", "‹").replace(">", "›")
+    yt_desc = yt_desc.replace("<", "‹").replace(">", "›")
 
     return PacoteMetadata(
         video_path=video_path,
@@ -127,6 +131,13 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
     """Upload video to YouTube Studio for Inspetor Bicho Grilo channel and return status."""
     url = f"https://studio.youtube.com/channel/{YOUTUBE_CHANNEL_ID}/videos/upload?d=ud"
     page.goto(url, wait_until="domcontentloaded", timeout=60000)
+    time.sleep(2.5)
+
+    # Dismiss optional YouTube Studio welcome modal ("Continuar" / "Continue") if present
+    welcome_btn = page.locator('button:has-text("Continuar"), ytcp-button:has-text("Continuar"), button:has-text("Continue")').first
+    if welcome_btn.count() > 0 and welcome_btn.is_visible():
+        welcome_btn.click()
+        time.sleep(1.0)
 
     file_input = page.locator('input[type="file"]').first
     file_input.wait_for(state="attached", timeout=30000)
@@ -148,11 +159,13 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
 
     not_for_kids = page.locator('tp-yt-paper-radio-button[name="VIDEO_MADE_FOR_KIDS_NOT_MFK"]').first
     if not_for_kids.count() > 0:
+        not_for_kids.scroll_into_view_if_needed()
         not_for_kids.click()
 
     if meta.ai_disclosure:
         show_more = page.locator('#toggle-button:has-text("Mostrar mais"), #toggle-button:has-text("Show more")').first
         if show_more.count() > 0 and show_more.is_visible():
+            show_more.scroll_into_view_if_needed()
             show_more.click()
             time.sleep(0.8)
         altered_yes = page.locator(
@@ -163,7 +176,6 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
             altered_yes.scroll_into_view_if_needed()
             altered_yes.click()
 
-    # Extract video short link from wizard if already assigned
     short_url = ""
     link_el = page.locator('a[href*="youtube.com/shorts/"], a[href*="youtu.be/"]').first
     if link_el.count() > 0:
@@ -171,9 +183,9 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
 
     for _ in range(3):
         next_btn = page.locator('#next-button').first
-        if next_btn.is_visible():
-            next_btn.click()
-            time.sleep(1.2)
+        expect(next_btn).to_be_enabled(timeout=30000)
+        next_btn.click()
+        time.sleep(1.5)
 
     vis_radio = page.locator(
         'tp-yt-paper-radio-button[name="PUBLIC"]' if do_publish else 'tp-yt-paper-radio-button[name="UNLISTED"]'
@@ -192,18 +204,22 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
         expect(done_btn).to_be_enabled(timeout=180000)
         done_btn.click()
         print(f"[YouTube] Clique em Publicar enviado ({short_url or 'aguardando URL'})...")
-        # Wait until upload/publish confirmation dialog finishes so upload is never cut off
-        for _ in range(36):
+        # Wait until upload/publish confirmation dialog finishes 100% so upload is never cut off
+        for _ in range(90):
             time.sleep(2.5)
-            dialog_txt = page.locator("body").inner_text()
-            if (
-                "Vídeo publicado" in dialog_txt
-                or "Video published" in dialog_txt
-                or "processamento" in dialog_txt.lower()
-                or "fechar" in dialog_txt.lower()
+            if not short_url:
+                link_el3 = page.locator('a[href*="youtube.com/shorts/"], a[href*="youtu.be/"]').first
+                if link_el3.count() > 0:
+                    short_url = link_el3.get_attribute("href") or ""
+            dialog_txt = page.locator("body").inner_text().lower()
+            still_uploading = ("enviando vídeo" in dialog_txt or "envio em" in dialog_txt or "uploading" in dialog_txt)
+            if not still_uploading and (
+                "vídeo publicado" in dialog_txt
+                or "video published" in dialog_txt
+                or "processamento" in dialog_txt
+                or "verificações concluídas" in dialog_txt
             ):
-                if "enviando" not in dialog_txt.lower() and "uploading" not in dialog_txt.lower():
-                    break
+                break
         page.screenshot(path="/tmp/publish_youtube_status.png")
         print(f"[YouTube] Publicação concluída: {short_url}")
         return {"platform": "youtube", "published": True, "url": short_url}
@@ -213,51 +229,79 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
 
 
 def publish_instagram(page: Page, meta: PacoteMetadata, do_publish: bool = False) -> dict[str, Any]:
-    """Upload Reel via Meta Business Suite for Inspetor Bicho Grilo."""
-    url = f"https://business.facebook.com/latest/reels_composer?asset_id={META_PAGE_ASSET_ID}"
-    page.goto(url, wait_until="domcontentloaded", timeout=60000)
-    time.sleep(4.0)
+    """Upload Reel via Meta Business Suite home -> 'Criar reel' button (including business_id)."""
+    home_url = f"https://business.facebook.com/latest/home?asset_id={META_PAGE_ASSET_ID}&business_id={META_BUSINESS_ID}"
+    add_btn = None
+    for attempt in range(3):
+        page.goto(home_url, wait_until="domcontentloaded", timeout=60000)
+        time.sleep(5.5)
+        create_reel_btn = page.get_by_text("Criar reel", exact=True).first
+        create_reel_btn.wait_for(state="visible", timeout=45000)
+        before_pages = len(page.context.pages)
+        create_reel_btn.click()
+        time.sleep(5.0)
+        if len(page.context.pages) > before_pages:
+            page = page.context.pages[-1]
+            page.bring_to_front()
+        candidate = page.get_by_text("Adicionar vídeo", exact=True).first
+        try:
+            candidate.wait_for(state="visible", timeout=20000)
+            add_btn = candidate
+            break
+        except Exception:
+            print(f"[Instagram/Meta] Reels Composer em branco na tentativa {attempt + 1}; recarregando...")
+            page.reload(wait_until="domcontentloaded", timeout=45000)
+            time.sleep(5.0)
+            if candidate.count() > 0 and candidate.is_visible():
+                add_btn = candidate
+                break
 
-    file_input = page.locator('input[type="file"]').first
-    if file_input.count() > 0:
-        file_input.set_input_files(str(meta.video_path))
-    else:
-        add_btn = page.locator(
-            'div[role="button"]:has-text("Adicionar vídeo"), button:has-text("Adicionar vídeo"), '
-            'div[role="button"]:has-text("Add video"), button:has-text("Add video")'
-        ).first
-        add_btn.wait_for(state="visible", timeout=30000)
-        with page.expect_file_chooser(timeout=15000) as fc_info:
-            add_btn.click()
-        fc_info.value.set_files(str(meta.video_path))
+    if add_btn is None:
+        raise RuntimeError("Não foi possível carregar 'Adicionar vídeo' no Reels Composer do Meta Business Suite.")
+
+    with page.expect_file_chooser(timeout=20000) as fc_info:
+        add_btn.click()
+    fc_info.value.set_files(str(meta.video_path))
     print("[Instagram/Meta] Vídeo selecionado no Reels Composer...")
 
     caption_box = page.locator('[contenteditable="true"][role="textbox"]').first
     caption_box.wait_for(state="visible", timeout=45000)
     caption_box.click()
-    caption_box.fill(meta.instagram_caption)
+    time.sleep(0.4)
+    page.keyboard.press("Meta+A")
+    page.keyboard.press("Backspace")
+    page.keyboard.insert_text(meta.instagram_caption)
+    time.sleep(1.0)
 
     if do_publish:
-        # Wait for video upload to reach 100% before clicking Next/Share
-        for _ in range(45):
-            body_t = page.locator("body").inner_text()
-            if "100%" in body_t or "Concluído" in body_t or "Uploaded" in body_t:
-                break
-            time.sleep(2.0)
-
-        for _ in range(2):
+        # Dismiss or hide floating Meta AI widget if it overlaps bottom-right action bar
+        page.evaluate(
+            """() => {
+                document.querySelectorAll('[aria-label*="Meta AI"], [data-pagelet*="assistant"]').forEach(el => el.remove());
+            }"""
+        )
+        # Wait up to 240s for video upload to enable 'Avançar' (Criar -> Editar -> Compartilhar)
+        for step_idx in range(2):
             next_btn = page.locator(
                 'div[role="button"]:has-text("Avançar"):not([aria-disabled="true"]), '
                 'button:has-text("Avançar"):not([disabled]), '
                 'div[role="button"]:has-text("Next"):not([aria-disabled="true"]), '
                 'button:has-text("Next"):not([disabled])'
-            ).first
-            try:
-                next_btn.wait_for(state="visible", timeout=45000)
-                next_btn.click()
-                time.sleep(2.5)
-            except Exception:
-                break
+            ).last
+            next_btn.wait_for(state="visible", timeout=240000 if step_idx == 0 else 45000)
+            page.get_by_text("Avançar", exact=True).last.click(force=True)
+            print(f"[Instagram/Meta] Avançar ({step_idx + 1}/2) clicado!")
+            time.sleep(3.5)
+
+        # Ensure 'Público' visibility radio is selected under 'Quem pode ver isso?' if shown
+        try:
+            pub_opt = page.get_by_text("Público", exact=True).first
+            if pub_opt.count() > 0:
+                pub_opt.scroll_into_view_if_needed()
+                pub_opt.click()
+                time.sleep(1.0)
+        except Exception:
+            pass
 
         # Attempt to toggle AI info label if exposed in Meta Business Suite composer
         if meta.ai_disclosure:
@@ -270,18 +314,25 @@ def publish_instagram(page: Page, meta: PacoteMetadata, do_publish: bool = False
                     ai_switch.click()
                     time.sleep(0.8)
 
-        share_btn = page.locator(
-            'div[role="button"]:has-text("Compartilhar"):not([aria-disabled="true"]), '
-            'button:has-text("Compartilhar"):not([disabled]), '
-            'div[role="button"]:has-text("Publicar"):not([aria-disabled="true"]), '
-            'button:has-text("Publicar"):not([disabled]), '
-            'div[role="button"]:has-text("Share"):not([aria-disabled="true"]), '
-            'button:has-text("Share"):not([disabled])'
-        ).last
-        share_btn.wait_for(state="visible", timeout=120000)
-        share_btn.click()
-        print("[Instagram/Meta] Clique em Compartilhar/Publicar enviado! Aguardando processamento...")
-        time.sleep(18.0)
+        # Wait until bottom-right 'Compartilhar' button is enabled (after copyright check finishes), then click exact leaf text
+        for _ in range(45):
+            disabled_share = page.locator('div[role="button"][aria-disabled="true"]:has-text("Compartilhar")').count()
+            if disabled_share == 0:
+                break
+            time.sleep(2.0)
+
+        share_leaf = page.get_by_text("Compartilhar", exact=True).last
+        share_leaf.wait_for(state="visible", timeout=60000)
+        share_leaf.click()
+        print("[Instagram/Meta] Clique em Compartilhar enviado! Aguardando confirmação de publicação...")
+        for _ in range(30):
+            time.sleep(2.0)
+            cur_u = page.url.lower()
+            body_l = page.locator("body").inner_text().lower()
+            if "reels_composer" not in cur_u or "publicando" in body_l or "compartilhado" in body_l or "seu reel" in body_l:
+                if "reels_composer" not in cur_u:
+                    break
+        time.sleep(4.0)
         page.screenshot(path="/tmp/publish_instagram_status.png")
         return {"platform": "instagram", "published": True, "url": page.url}
 
@@ -393,6 +444,26 @@ def publish_tiktok(page: Page, meta: PacoteMetadata, do_publish: bool = False) -
     if meta.ai_disclosure:
         ai_toggled = _enable_tiktok_ai_disclosure(page)
         print(f"[TikTok] Rótulo REQ-007 ('Conteúdo gerado por IA'): toggled={ai_toggled}")
+
+    # Ensure privacy is explicitly set to Everyone / Todos (never Only me!)
+    try:
+        priv_trigger = page.locator(
+            'div[role="combobox"]:has-text("Only me"), div[role="combobox"]:has-text("Somente eu"), '
+            'button:has-text("Only me"), button:has-text("Somente eu")'
+        ).first
+        if priv_trigger.count() > 0 and priv_trigger.is_visible():
+            priv_trigger.scroll_into_view_if_needed()
+            priv_trigger.click()
+            time.sleep(0.8)
+            pub_opt = page.locator(
+                'div[role="option"]:has-text("Everyone"), div[role="option"]:has-text("Todos"), '
+                'li:has-text("Everyone"), li:has-text("Todos")'
+            ).first
+            if pub_opt.count() > 0 and pub_opt.is_visible():
+                pub_opt.click()
+                time.sleep(0.6)
+    except Exception:
+        pass
 
     if do_publish:
         post_btn = page.locator('button[data-e2e="post_video_button"], button:has-text("Publicar"), button:has-text("Post")').last

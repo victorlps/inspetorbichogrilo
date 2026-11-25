@@ -19,7 +19,7 @@
 | **Morango `15 g`** (`SKU SFMO` · EAN `7898968451323`) | [Kit 5 un. Morango ML (`MLBU3587020311`)](https://meli.la/1GLJrwN) | [Amazon Morango (`B0HBD2Q4LJ`)](https://www.amazon.com.br/dp/B0HBD2Q4LJ) · [Shopee Morango](https://shopee.com.br/Snack-Morango-Davida-Fruta-Liofilizada-Natural-Sem-A%C3%A7%C3%BAcar-Gl%C3%BAten-Davida-Saud%C3%A1vel-Fitness-i.1663788163.58255857570) · [Magalu (`hda20hfc72`)](https://www.magazineluiza.com.br/snack-de-morango-sem-acucar-davida-15g/p/hda20hfc72/me/cftr/) | **`198 g`** de morango fresco (**`-92,4%`** de massa) · `42 kcal` · `0 g` açúcar adicionado |
 | **Duo Banana e Morango `15 g`** (`SKU SF02`) | [Catálogo ML Duo (`MLB2090221032`)](https://meli.la/2Ujo2v7) | [Amazon Mix Banana+Morango (`B0HBCT3TQF`)](https://www.amazon.com.br/dp/B0HBCT3TQF) | **`140 g`** frescos (`50 g` banana + `90 g` morango · **`-89,3%`**) · `48 kcal` · equilibra a acidez do morango |
 | **Manga `15 g` (`SFM1`) & Abacaxi `15 g` (`SFA1`)** | [Catálogo ML Manga (`MLB56338512`)](https://www.mercadolivre.com.br/snack-manga-liofilizada-davida-15g/p/MLB56338512) | Loja Oficial `DAVIDA ALIMENTOS` no ML | Manga: **`75 g`** frescos (`-80,0%` · `56 kcal`) · Abacaxi: **`115 g`** frescos (`-87,0%` · `58 kcal`) |
-| **Banana `15 g` (`SFB1`), Maçã (`SFMC`) & Mirtilo (`SFMI`)** | [ML Banana (`MLBU3416150669`)](https://meli.la/1M8fPcC) · [ML Maçã (`MLBU3553521522`)](https://www.mercadolivre.com.br/snack-maca-davida-fruta-liofilizada-100-saudavel-sem-gluten/up/MLBU3553521522) | [Amazon Banana (`B0HBCYFP2D`)](https://www.amazon.com.br/dp/B0HBCYFP2D) · [Amazon Maçã (`B0HBCWCFDR`)](https://www.amazon.com.br/dp/B0HBCWCFDR) | Banana: **`60 g`** frescos (`-75,0%` · `55 kcal`) · Mirtilo: **`~96 g`** frescos (`-84,4%`) · `100%` fruta |
+| **Banana `15 g` (`SFB1`), Maçã (`SFMC`) & Mirtilo (`SFMI`)** | [ML Banana (`MLBU3416150669`)](https://meli.la/1M8fPcC) · [ML Maçã (`MLBU3553521522`)](https://meli.la/2ztf51x) | [Amazon Banana (`B0HBCYFP2D`)](https://www.amazon.com.br/dp/B0HBCYFP2D) · [Amazon Maçã (`B0HBCWCFDR`)](https://www.amazon.com.br/dp/B0HBCWCFDR) | Banana: **`60 g`** frescos (`-75,0%` · `55 kcal`) · Mirtilo: **`~96 g`** frescos (`-84,4%`) · `100%` fruta |
 
 ---
 
@@ -52,7 +52,7 @@
 - **Descrição / Comentário fixado:**
   > O que é uma fruta liofilizada, como ela é fabricada dentro da câmara de alto vácuo, o que diferencia essa técnica da secagem em estufa quente ou da fritura em óleo e por que ela faz tanta diferença em caminhadas longas nas montanhas?
   > • **Etapa 1 — Supercongelamento (`-30 °C` a `-50 °C`):** forma microcristais uniformes que preservam as paredes celulares vegetais.
-  > • **Etapa 2 — Alto Vácuo e Sublimação (`< 611,657 Pa`):** abaixo do ponto triplo da água, o gelo passa direto de sólido para vapor sem fase líquida, mantendo `1%–4%` de umidade numa esponja porosa rica em Vitamina C.
+  > • **Etapa 2 — Alto Vácuo e Sublimação (abaixo de `611,657 Pa`):** abaixo do ponto triplo da água, o gelo passa direto de sólido para vapor sem fase líquida, mantendo `1%–4%` de umidade numa esponja porosa rica em Vitamina C.
   > • **Na mochila de trekking:** elimina até `92,4%` de peso morto de água (`198 g` de morango fresco → `15 g`), dura `12 meses` fora da geladeira e entrega carboidratos naturais rápidos.
   >
   > 🔗 **Exemplar real auditado no vídeo (`daVIDA Só Fruta 15 g` — Código IBG-002):**

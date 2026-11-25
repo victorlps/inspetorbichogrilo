@@ -23,34 +23,28 @@
       "nota_tecnica": "Cuidado físico de campo: leve no bolso superior da mochila para preservar as fatias porosas e, como o sachê 15 g é termosselado sem zíper, consuma logo após abrir na serra para evitar absorção de umidade.",
       "variacoes": [
         {
-          "rotulo": "Kit Degustação / Sabores Múltiplos (Travessia)",
-          "loja": "Mercado Livre Oficial (DAVIDA ALIMENTOS)",
-          "especificacao": "Mix de sabores 15 g · 100% fruta pura",
-          "url": "https://www.mercadolivre.com.br/kit-fruta-liofilizada-degustacao-snack-davida-mix-sabores/p/MLB2078372053"
-        },
-        {
           "rotulo": "Kit 5x Morango Liofilizado 15 g (SKU SFMO)",
-          "loja": "Mercado Livre Oficial",
+          "loja": "Mercado Livre Oficial (DAVIDA ALIMENTOS)",
           "especificacao": "198 g morango fresco -> 15 g (-92,4% massa) · 42 kcal/sachê",
           "url": "https://meli.la/1GLJrwN"
         },
         {
           "rotulo": "Duo Banana e Morango 15 g (SKU SF02)",
-          "loja": "Mercado Livre Oficial",
+          "loja": "Mercado Livre Oficial (DAVIDA ALIMENTOS)",
           "especificacao": "140 g fruta fresca -> 15 g · equilibra a acidez natural do morango",
           "url": "https://meli.la/2Ujo2v7"
         },
         {
-          "rotulo": "Sabores Doces Avulsos: Manga / Banana / Maçã (15 g)",
-          "loja": "Mercado Livre Oficial",
-          "especificacao": "60 g a 75 g fruta fresca -> 15 g · zero açúcar adicionado",
-          "url": "https://www.mercadolivre.com.br/snack-manga-liofilizada-davida-15g/p/MLB56338512"
-        },
-        {
           "rotulo": "Banana Liofilizada 15 g (SKU SFB1)",
-          "loja": "Mercado Livre Oficial",
+          "loja": "Mercado Livre Oficial (DAVIDA ALIMENTOS)",
           "especificacao": "60 g banana fresca -> 15 g (-75% massa) · 55 kcal/sachê",
           "url": "https://meli.la/1M8fPcC"
+        },
+        {
+          "rotulo": "Maçã Liofilizada 15 g (SKU SFMC)",
+          "loja": "Mercado Livre Oficial (DAVIDA ALIMENTOS)",
+          "especificacao": "Fruta 100% pura crocante · zero açúcar adicionado e sem glúten",
+          "url": "https://meli.la/2ztf51x"
         }
       ]
     },
