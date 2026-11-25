@@ -20,7 +20,7 @@ Fluxo derivado de [0001-canais-e-afiliados-fase-1.md](../../../docs/decisoes/000
 
 ## 2. Busca nos marketplaces e critérios de parada
 
-- Execute busca cirúrgica por **modelo/produto exato + especificação crítica** via subagente `browser` na sessão autenticada (ou API oficial configurada, conferindo a presença de `.env*` exclusivamente com `test -f`). Quando o acesso autenticado estiver indisponível, realize busca pública complementar via `search_web` e registre comissão/link curto dependente de login como **não verificado nesta sessão**.
+- Execute busca cirúrgica por **modelo/produto exato + especificação crítica** via subagente `browser` ou ferramentas locais (conferindo a presença de `.env*` exclusivamente com `test -f`), e valide imediatamente a elegibilidade de comissão dos anúncios candidatos executando `PYTHONPATH=. .venv/bin/python src/publish/affiliate_links.py --verify-urls <url1> <url2> ...` no perfil persistente autenticado. Priorize na `§ 4.` anúncios ativos que retornem link curto comissionado válido (`https://meli.la/...`, `https://amzn.to/...` ou equivalente parametrizado) já no Portão 1.
 - Deduplique por SKU/vendedor e mapeie as variações essenciais disponíveis para compor o catálogo completo de `pacote.md` e da vitrine.
 - Aplique **parada por suficiência qualitativa**: ao confirmar **1 anúncio líder sólido por variação essencial** nos quatro marketplaces da Fase 1 (**Mercado Livre, Amazon, Shopee e Parceiro Magalu**), confronte-os na `§ 4.` para eleger o programa principal (ou registre ausência qualificada com termo e data).
 

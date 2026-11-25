@@ -11,9 +11,9 @@ Fontes lidas em 2026-11-17.
 
 O método vem da skill [doc-coauthoring](https://github.com/anthropics/skills/tree/main/skills/doc-coauthoring), da Anthropic, reduzido ao que serve a um projeto do usuário com a IA como coautora. Os documentos são do usuário: suposições da IA, como metas e números sem fonte, viram regra sem base.
 
-- Antes de escrever, pergunte ao usuário o contexto que falta. Não suponha leitores, metas nem números.
+- Antes de escrever, pergunte ao usuário o contexto faltante, mantendo leitores, metas e números estritamente ancorados em fontes ou definições explícitas do usuário.
 - Antes de redigir, apresente as opções e deixe o usuário escolher o que entra.
-- Pergunte uma decisão por vez, com as opções e o efeito de cada uma, e só o que a fase atual precisa decidir. Não embuta na pergunta uma troca que o usuário não aceitou. Perguntas abertas, agrupadas ou que antecipam fases futuras deixam o usuário sem como escolher.
+- Pergunte uma decisão por vez, com as opções e o efeito de cada uma, focando exclusivamente no que a fase atual precisa decidir e nas trocas já validadas pelo usuário.
 - Prefira edições pequenas e revisáveis a reescritas.
 - Antes de propor um documento ao aceite, rode o [leitor sem contexto](#leitor-sem-contexto).
 
@@ -24,9 +24,9 @@ O autor conhece o contexto e não enxerga o que o texto deixa de dizer; um leito
 - **Quando:** antes de propor o documento ao aceite e depois de edição que mude o sentido de um documento aceito. Ideias ditas no chat ainda não são texto e não passam por esta etapa.
 - **Antes de rodar,** anote o que o documento precisa transmitir: as decisões, os números e as condições que o usuário deve conseguir dizer depois de ler.
 - **O leitor** é um agente que não recebe a conversa. Ele recebe só o caminho do documento e das fontes que ele cita, responde às perguntas que o usuário faria sobre o texto e aponta o que ficou ambíguo ou sem fonte. Ele também confere se cada afirmação continua fiel à fonte.
-- **Compare** as respostas com a anotação. Cada divergência é correção no texto, não pergunta ao usuário.
-- **Não anuncie** que rodou: o resultado aparece só nas edições do documento.
-- **Se o motor não lança um agente sem a conversa,** diga isso ao usuário uma vez. Um leitor simulado pelo próprio autor não vale, porque ele já conhece o contexto.
+- **Compare** as respostas com a anotação. Cada divergência vira correção direta no texto antes da entrega.
+- **Incorporação silenciosa:** reflita o resultado diretamente na clareza das edições do documento entregue.
+- **Quando o ambiente exigir conversa compartilhada,** informe isso ao usuário uma vez e utilize exclusivamente instância limpa com contexto isolado para o leitor.
 - No Antigravity App, o agente principal lança o leitor com a ferramenta `invoke_subagent`, e o subagente começa sem o histórico da conversa ([subagentes](https://antigravity.google/docs/subagents)). Na Antigravity CLI, a documentação não diz se o histórico é herdado: **não verificado**, e vale a regra anterior.
 
 ## Onde esta skill fica
@@ -66,11 +66,11 @@ Só o usuário aceita um documento, porque as decisões do projeto são dele. Vi
 Requisitos usam EARS para que cada um tenha um critério de aceite que o usuário observa sem ler código.
 
 Cada requisito tem:
-- ID estável (`REQ-001`), nunca reutilizado;
+- ID estável e permanente (`REQ-001`), exclusivo de um único requisito em todo o ciclo de vida do projeto;
 - frase numa das formas do [EARS](https://alistairmavin.com/ears/), abaixo;
-- critério de aceite que o usuário observa sem ler código.
+- critério de aceite que o usuário observa diretamente nos artefatos entregues.
 
-"Deve" traduz "shall". Não use "pode" nem "deveria" em requisito.
+Empregue sempre o verbo normativo `"deve"` (tradução exata de *"shall"*) para expressar obrigatoriedade testável.
 
 | Padrão EARS | Forma em português |
 |---|---|
@@ -124,7 +124,7 @@ Conforme [0006-governanca-qualidade-finops-e-composicao-visual.md](../../../docs
 
 ## Pesquisa
 
-- Não há lista separada de perguntas de pesquisa: cada nota é uma pergunta, porque uma lista de perguntas é plano de trabalho, não documento.
-- O título é a pergunta que a nota responde, descrita pelo problema, não pela categoria de ferramenta, porque partir da categoria já escolhe a solução antes de entender o problema.
-- Separe fatos (com fonte) de inferências.
-- Nenhuma recomendação antes da evidência, porque uma opção recomendada cedo ancora a escolha do usuário.
+- Cada nota de pesquisa corresponde diretamente a uma pergunta específica em seu próprio arquivo.
+- O título formula a pergunta pelo problema investigado, preservando neutralidade em relação às categorias de ferramenta avaliadas.
+- Separe fatos (com fonte e data de leitura) de inferências.
+- Apresente toda a evidência factual antes de qualquer síntese ou comparação de caminhos, mantendo a escolha livre de ancoragem precoce.
