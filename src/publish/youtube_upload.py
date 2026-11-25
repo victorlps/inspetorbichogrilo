@@ -65,7 +65,7 @@ def get_youtube_service() -> Any:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(str(secrets_path), SCOPES)
-            creds = flow.run_local_server(port=0)
+            creds = flow.run_local_server(port=0, prompt="select_account")
         token_path.write_text(creds.to_json(), encoding="utf-8")
 
     return build("youtube", "v3", credentials=creds)
