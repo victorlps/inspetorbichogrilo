@@ -204,7 +204,7 @@ def publish_youtube(page: Page, meta: PacoteMetadata, do_publish: bool = False) 
         expect(done_btn).to_be_enabled(timeout=180000)
         done_btn.click()
         print(f"[YouTube] Clique em Publicar enviado ({short_url or 'aguardando URL'})...")
-        # Wait until upload/publish confirmation dialog finishes 100% so upload is never cut off
+        # Wait until upload/publish confirmation dialog finishes 100% to preserve stream integrity
         for _ in range(90):
             time.sleep(2.5)
             if not short_url:
@@ -445,7 +445,7 @@ def publish_tiktok(page: Page, meta: PacoteMetadata, do_publish: bool = False) -
         ai_toggled = _enable_tiktok_ai_disclosure(page)
         print(f"[TikTok] Rótulo REQ-007 ('Conteúdo gerado por IA'): toggled={ai_toggled}")
 
-    # Ensure privacy is explicitly set to Everyone / Todos (never Only me!)
+    # Select public visibility ('Everyone' / 'Todos') explicitly before posting
     try:
         priv_trigger = page.locator(
             'div[role="combobox"]:has-text("Only me"), div[role="combobox"]:has-text("Somente eu"), '

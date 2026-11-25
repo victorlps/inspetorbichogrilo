@@ -1,4 +1,4 @@
-# Pacote Final de Publicação (Portão 4) — Ducha Eletrônica Zagonel ND Branco (127V e 220V)
+# Pacote Final de Publicação (Portão 3) — Ducha Eletrônica Zagonel ND Branco (127V e 220V)
 
 - **Produto:** Ducha Eletrônica Zagonel ND Branco (`127V · 5.500 W`, código `DNDEL55127BR03` / EAN `7908649632145` e `220V · 7.700 W`, código `DNDEL77220BR03` / EAN `7908649632138`)
 - **Código curto da vitrine (`REQ-008`):** `IBG-001` *(ativo em https://victorlps.github.io/inspetorbichogrilo/?c=IBG-001 após aceite final no chat)*
@@ -12,12 +12,12 @@
 
 ## 1. Links Principais de Afiliado por Variação Essencial (`127V` e `220V`)
 
-> **Ação obrigatória antes de publicar (sessão autenticada do usuário):** gerar os dois links curtos oficiais (`/sec/...` no Mercado Livre Afiliados e/ou SiteStripe na Amazon Associados) logado na conta do usuário e substituir os placeholders `https://meli.la/1GvvxXr` e `https://meli.la/2kUbXEz` nas descrições e na automação de DM abaixo.
+> **Sincronização com `vitrine/catalogo.json` (`IBG-001`):** ambas as variações essenciais abaixo utilizam links curtos oficiais comissionados (`https://meli.la/...`) ativos na vitrine pública.
 
 | Variação Essencial | Programa Principal (Mercado Livre — `4,8★ · 3.152 avaliações`) | Fallback Verificado ao Vivo (Amazon Brasil — `4,4★`) | Especificação Elétrica Obrigatória (Manual Zagonel) |
 |---|---|---|---|
-| **`220V · 7.700 W`** (`DNDEL77220BR03`) | [Catálogo Oficial ML 220V (`MLB47799834`)](https://www.mercadolivre.com.br/ducha-eletronica-zagonel-nd-7700w-branco/p/MLB47799834) *(gerar link curto `/sec/...` na barra logada)* | [Amazon Brasil 220V (`B0F32VD9HN`)](https://www.amazon.com.br/dp/B0F32VD9HN) | Cabo **`6 mm²`** + Disjuntor **`40 A`** (`35 A` nominais · elevação INMETRO `+34,9 °C` a `3 L/min`) |
-| **`127V · 5.500 W`** (`DNDEL55127BR03`) | [Catálogo Oficial ML 127V (`MLB47884399`)](https://www.mercadolivre.com.br/ducha-chuveiro-nd-eletronica-branco-5500w-zagonel/p/MLB47884399?product_trigger_id=MLB47884399&attributes=POWER%3A5.5%20kW%2CCOLOR%3ABranco%2CVOLTAGE%3AMLB47884399&picker=true) *(gerar link curto `/sec/...` na barra logada)* | [Amazon Brasil 127V (`B0F32SH8RN`)](https://www.amazon.com.br/dp/B0F32SH8RN) | Cabo **`10 mm²`** + Disjuntor **`50 A`** (`43,3 A` nominais · elevação INMETRO `+24,4 °C` a `3 L/min`) |
+| **`220V · 7.700 W`** (`DNDEL77220BR03`) | [Zagonel ND 220V ML (`MLB47799834`)](https://meli.la/1GvvxXr) | [Amazon Brasil 220V (`B0F32VD9HN`)](https://www.amazon.com.br/dp/B0F32VD9HN) | Cabo **`6 mm²`** + Disjuntor **`40 A`** (`35 A` nominais · elevação INMETRO `+34,9 °C` a `3 L/min`) |
+| **`127V · 5.500 W`** (`DNDEL55127BR03`) | [Zagonel ND 127V ML (`MLB47884399`)](https://meli.la/2kUbXEz) | [Amazon Brasil 127V (`B0F32SH8RN`)](https://www.amazon.com.br/dp/B0F32SH8RN) | Cabo **`10 mm²`** + Disjuntor **`50 A`** (`43,3 A` nominais · elevação INMETRO `+24,4 °C` a `3 L/min`) |
 
 ---
 
@@ -46,7 +46,7 @@
 
 ### 2.3 YouTube Shorts
 - **Título sugerido (`≤ 100` caracteres):**
-  `RAIO-X 3D: Ducha Zagonel ND por Dentro! Dimmer TRIAC e Mesma Resistência ND/Turbo (127V/220V) #shorts`
+  `RAIO-X 3D: Ducha Zagonel ND por Dentro! TRIAC e Mesma Resistência ND/Turbo (127V/220V) #shorts`
 - **Descrição / Comentário fixado:**
   > Abrimos em **Raio-X 3D** a engenharia interna da **Ducha Eletrônica Zagonel ND Branco** (`127V / 5500W` e `220V / 7700W` — o projeto clássico criado pela Thermosystem, consagrado na Hydra e hoje fabricado pela Zagonel):
   > • **Regulador como um Dimmer (`TRIAC` no compartimento seco):** substitui as 3 posições fixas por ajuste gradual de calor com o registro 100% aberto.

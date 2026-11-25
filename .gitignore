@@ -8,6 +8,10 @@ __pycache__/
 .DS_Store
 planos/
 _preview_build/
+# Artefatos binários pesados de renderização (mantidos localmente / GitHub Releases, fora da árvore Git da vitrine)
+produtos/*/*.mp4
+produtos/*/assets/*.mp4
+
 video-engine/node_modules/
 video-engine/out/
 video-engine/_bench_out/

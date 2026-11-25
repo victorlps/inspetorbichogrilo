@@ -124,15 +124,36 @@ def upload_short(
     return response
 
 
+def has_youtube_oauth_ready() -> bool:
+    """Return True when both OAuth client secret and saved user/channel token exist on disk."""
+    sec, tok = _resolve_oauth_paths()
+    return sec.exists() and tok.exists()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Upload vertical Short to YouTube via Data API v3.")
-    parser.add_argument("--video", type=Path, required=True)
-    parser.add_argument("--title", type=str, required=True)
-    parser.add_argument("--description-file", type=Path, required=True)
-    parser.add_argument("--tags", type=str, default="RaioX3D,Engenharia,InspetorBichoGrilo,Shorts")
+    parser.add_argument("--auth-only", action="store_true", help="Executa apenas o fluxo OAuth único e valida o canal Inspetor Bicho Grilo.")
+    parser.add_argument("--video", type=Path, default=None)
+    parser.add_argument("--title", type=str, default="")
+    parser.add_argument("--description-file", type=Path, default=None)
+    parser.add_argument("--tags", type=str, default="ComoFunciona,Ciencia,Engenharia,InspetorBichoGrilo,Shorts")
     parser.add_argument("--privacy", choices=["private", "unlisted", "public"], default="private")
     parser.add_argument("--no-synthetic", action="store_true")
     args = parser.parse_args()
+
+    if args.auth_only:
+        yt = get_youtube_service()
+        ch_resp = yt.channels().list(part="snippet", mine=True).execute()
+        items = ch_resp.get("items", [])
+        cid = items[0]["id"] if items else ""
+        ctitle = items[0]["snippet"]["title"] if items else ""
+        if cid != EXPECTED_CHANNEL_ID:
+            raise SystemExit(f"Canal OAuth selecionado ({ctitle} / {cid}) difere de {EXPECTED_CHANNEL_ID}.")
+        print(json.dumps({"authenticated": True, "channel_id": cid, "title": ctitle}, ensure_ascii=False))
+        return
+
+    if not args.video or not args.title or not args.description_file:
+        parser.error("--video, --title e --description-file são obrigatórios exceto com --auth-only.")
 
     desc = args.description_file.read_text(encoding="utf-8")
     tags = [t.strip() for t in args.tags.split(",") if t.strip()]

@@ -1,8 +1,9 @@
-"""Automated Affiliate Short-Link Generator for Mercado Livre Afiliados & Amazon Associados.
+"""Automated Affiliate Short-Link Generator & Eligibility Verifier for Mercado Livre Afiliados & Amazon Associados.
 
 Architecture:
-1. Probes sessions invisibly first (--headless=new) in ~/.cache/inspetorbichogrilo-pw-profile so zero windows flash during normal runs.
-2. If Mercado Livre or Amazon session is not logged in yet, opens ONE visible Chrome window with SEPARATE tabs (never closing or overwriting a login tab!) and waits up to --login-timeout seconds for the one-time login to finish, then immediately generates all short links and persists the session for future products.
+1. Probes sessions invisibly first (--headless=new with standard desktop Chrome User-Agent) in ~/.cache/inspetorbichogrilo-pw-profile.
+2. Supports --verify-urls in Portao 1 so @Curador confirms 100% affiliate eligibility before selecting SKUs in ficha.md, and --include-inactive in Portao 3 so vitrine/catalogo.json has 100% meli.la/amzn.to links ready while 'ativo': false (REQ-008).
+3. When initial authentication is needed, opens one visible Chrome window with dedicated tabs per marketplace, preserving each tab until login completes.
 """
 
 from __future__ import annotations
@@ -132,13 +133,34 @@ def _generate_amz_short_link_on_page(page: Page, target_url: str) -> str | None:
     return None
 
 
+def verify_candidate_urls(urls: list[str]) -> dict[str, str | None]:
+    """Verify and convert candidate marketplace URLs invisibly during Portao 1 / Portao 3 curation."""
+    results: dict[str, str | None] = {}
+    with sync_playwright() as p:
+        ctx = _launch_profile(p, headless_new=True)
+        page = ctx.pages[0] if ctx.pages else ctx.new_page()
+        for raw_u in urls:
+            u = raw_u.strip()
+            if _is_already_short_affiliate(u):
+                results[u] = u
+            elif "mercadolivre.com.br" in u:
+                results[u] = _generate_ml_short_link_on_page(page, u)
+            elif "amazon.com.br" in u:
+                results[u] = _generate_amz_short_link_on_page(page, u)
+            else:
+                results[u] = None
+        ctx.close()
+    return results
+
+
 def sync_affiliate_links(
     code: str | None = None,
     catalogo_path: Path = CATALOGO_PATH,
     product_dir: Path | None = None,
     wait_for_login_s: int = 300,
+    include_inactive: bool = True,
 ) -> dict[str, Any]:
-    """Convert canonical URLs in vitrine/catalogo.json to short affiliate links (probing headless first, opening separate login tabs only if needed)."""
+    """Convert canonical URLs in vitrine/catalogo.json to short affiliate links (including pre-publish 'ativo': false cards)."""
     data = json.loads(catalogo_path.read_text(encoding="utf-8"))
 
     ml_candidates: list[tuple[dict[str, Any], str]] = []
@@ -147,7 +169,7 @@ def sync_affiliate_links(
     for prod in data.get("produtos", []):
         if code and prod.get("codigo") != code:
             continue
-        if not prod.get("ativo"):
+        if not include_inactive and not prod.get("ativo"):
             continue
         for var in prod.get("variacoes", []):
             url = str(var.get("url", "")).strip()
@@ -196,7 +218,7 @@ def sync_affiliate_links(
                 need_amz_login = True
         ctx.close()
 
-    # Phase 2: If login is needed AND wait_for_login_s > 0, open ONE visible window with SEPARATE tabs (never overwriting!)
+    # Phase 2: When initial login is needed and wait_for_login_s > 0, open one visible window with dedicated tabs per marketplace
     session_missing: list[str] = []
     if (need_ml_login or need_amz_login) and wait_for_login_s > 0:
         print(
@@ -273,24 +295,38 @@ def sync_affiliate_links(
                 p_txt = p_txt.replace(orig_u, short_u)
             (product_dir / "pacote.md").write_text(p_txt, encoding="utf-8")
 
+    failed_urls = [
+        orig_u
+        for _, orig_u in (ml_candidates + amz_candidates)
+        if orig_u not in converted
+    ]
     return {
         "checked": total_candidates,
         "converted": len(converted),
+        "failed_urls": failed_urls,
         "mapping": converted,
         "session_missing": session_missing,
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Converte URLs canônicas em links curtos de afiliado no catalogo.json.")
+    parser = argparse.ArgumentParser(description="Valida elegibilidade e converte URLs canônicas em links curtos de afiliado.")
     parser.add_argument("--code", type=str, default=None, help="Código curto do produto (ex.: IBG-002)")
     parser.add_argument("--product-dir", type=Path, default=None, help="Pasta opcional produtos/<slug>")
-    parser.add_argument("--login-timeout", type=int, default=300, help="Segundos para aguardar login único em abas separadas (0 = não abrir janela)")
+    parser.add_argument("--login-timeout", type=int, default=300, help="Segundos aguardando login único em abas dedicadas")
+    parser.add_argument("--verify-urls", nargs="*", default=None, help="Testa elegibilidade de URLs candidatas no Portão 1 sem alterar arquivos")
     args = parser.parse_args()
+
+    if args.verify_urls is not None:
+        v_res = verify_candidate_urls(args.verify_urls)
+        print(json.dumps(v_res, ensure_ascii=False, indent=2))
+        return 0 if all(v_res.values()) else 1
 
     res = sync_affiliate_links(code=args.code, product_dir=args.product_dir, wait_for_login_s=args.login_timeout)
     print(json.dumps(res, ensure_ascii=False, indent=2))
-    return 0 if not res["session_missing"] else 2
+    if res["session_missing"] or res["failed_urls"]:
+        return 2
+    return 0
 
 
 if __name__ == "__main__":

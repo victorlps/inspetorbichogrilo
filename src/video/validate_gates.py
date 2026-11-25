@@ -447,8 +447,34 @@ def _validate_render_common(
     return len(errors) == 0, errors, stats
 
 
-def validate_portao_3(prod_dir: Path) -> tuple[bool, list[str], dict[str, object]]:
-    """Run deterministic checks for Portao 3 (video_final_1080p.mp4 at 1080x1920 + pacote.md under ADR 0008)."""
+AFFILIATE_URL_PREFIXES = (
+    "https://meli.la/",
+    "https://mercadolivre.com/sec/",
+    "https://www.mercadolivre.com.br/sec/",
+    "https://amzn.to/",
+)
+
+
+def _is_monetized_affiliate_url(url: str) -> bool:
+    u = url.strip()
+    return u.startswith(AFFILIATE_URL_PREFIXES) or "tag=" in u or "matt_tool=" in u
+
+
+def _extract_blockquote_clean(section_text: str) -> str:
+    lines: list[str] = []
+    for line in section_text.splitlines():
+        if line.strip().startswith(">"):
+            clean = re.sub(r"^>\s?", "", line.strip())
+            clean = clean.replace("**", "").replace("`", "")
+            lines.append(clean)
+    return "\n".join(lines).strip()
+
+
+def validate_portao_3(
+    prod_dir: Path,
+    require_vitrine_entry: bool = False,
+) -> tuple[bool, list[str], dict[str, object]]:
+    """Run deterministic checks for Portao 3 (video_final_1080p.mp4 + pacote.md platform syntax + catalogo.json affiliate readiness)."""
     ok, errors, stats = _validate_render_common(
         prod_dir,
         gate_num=3,
@@ -458,15 +484,89 @@ def validate_portao_3(prod_dir: Path) -> tuple[bool, list[str], dict[str, object
     pacote_path = prod_dir / "pacote.md"
     if not pacote_path.exists() or pacote_path.stat().st_size == 0:
         errors.append("[Portão 3] Arquivo pacote.md ausente ou vazio.")
+        return False, errors, stats
+
+    p_text = pacote_path.read_text(encoding="utf-8")
+    _check_privacy(p_text, "Portão 3", errors)
+    if not re.search(r"REQ-007|inteligência artificial|gerad[oa] por IA", p_text, re.IGNORECASE):
+        errors.append("[Portão 3] Aviso determinístico de conteúdo de IA (REQ-007) ausente em pacote.md.")
+
+    unresolved_ph = re.findall(r"<LINK_[^>]+>", p_text)
+    if unresolved_ph:
+        errors.append(f"[Portão 3] Placeholders de link pendentes em pacote.md: {', '.join(sorted(set(unresolved_ph)))}")
+
+    if re.search(r"substituir os placeholders|gerar link curto `/sec/", p_text, re.IGNORECASE):
+        errors.append("[Portão 3] Instrução residual de rascunho ('substituir os placeholders' / 'gerar link curto') presente em pacote.md.")
+
+    code_m = re.search(r"\b(IBG-\d{3,})\b", p_text)
+    if not code_m:
+        errors.append("[Portão 3] Código curto da vitrine (IBG-XXX) ausente em pacote.md.")
+        vitrine_code = ""
     else:
-        p_text = pacote_path.read_text(encoding="utf-8")
-        _check_privacy(p_text, "Portão 3", errors)
-        if not re.search(r"REQ-007|inteligência artificial|gerad[oa] por IA", p_text, re.IGNORECASE):
-            errors.append("[Portão 3] Aviso determinístico de conteúdo de IA (REQ-007) ausente em pacote.md.")
-        unresolved_ph = re.findall(r"<LINK_[^>]+>", p_text)
-        if unresolved_ph:
-            errors.append(f"[Portão 3] Placeholders de link não resolvidos em pacote.md: {', '.join(sorted(set(unresolved_ph)))}")
-        stats["pacote_md_bytes"] = pacote_path.stat().st_size
+        vitrine_code = code_m.group(1)
+        stats["vitrine_code"] = vitrine_code
+
+    # Validate platform-specific caption/title constraints so zero post-approval rework happens during upload
+    ig_m = re.search(r"### 2\.1 Instagram Reels\s+(.*?)(?=\n### |\n---)", p_text, re.S)
+    tt_m = re.search(r"### 2\.2 TikTok\s+(.*?)(?=\n### |\n---)", p_text, re.S)
+    yt_m = re.search(r"### 2\.3 YouTube Shorts\s+(.*?)(?=\n### |\n---)", p_text, re.S)
+
+    ig_cap = _extract_blockquote_clean(ig_m.group(1)) if ig_m else ""
+    tt_cap = _extract_blockquote_clean(tt_m.group(1)) if tt_m else ""
+    if not ig_cap or len(ig_cap) > 2200:
+        errors.append(f"[Portão 3] Legenda do Instagram Reels ausente ou acima de 2200 caracteres ({len(ig_cap)} chars).")
+    elif vitrine_code and vitrine_code not in ig_cap:
+        errors.append(f"[Portão 3] Legenda do Instagram Reels precisa citar o código {vitrine_code}.")
+
+    if not tt_cap or len(tt_cap) > 2200:
+        errors.append(f"[Portão 3] Legenda do TikTok ausente ou acima de 2200 caracteres ({len(tt_cap)} chars).")
+    elif vitrine_code and vitrine_code not in tt_cap:
+        errors.append(f"[Portão 3] Legenda do TikTok precisa citar o código {vitrine_code}.")
+
+    if not yt_m:
+        errors.append("[Portão 3] Seção '### 2.3 YouTube Shorts' ausente em pacote.md.")
+    else:
+        yt_block = yt_m.group(1)
+        yt_title_m = re.search(r"- \*\*Título sugerido[^\n]*\n\s*`([^`]+)`", yt_block)
+        yt_title = yt_title_m.group(1).strip() if yt_title_m else ""
+        yt_desc = _extract_blockquote_clean(yt_block)
+        if not yt_title or len(yt_title) > 100:
+            errors.append(f"[Portão 3] Título do YouTube Shorts ausente ou acima de 100 caracteres ({len(yt_title)} chars).")
+        elif "#shorts" not in yt_title.lower():
+            errors.append("[Portão 3] Título do YouTube Shorts precisa incluir #shorts.")
+        if not yt_desc or len(yt_desc) > 5000:
+            errors.append(f"[Portão 3] Descrição do YouTube Shorts ausente ou acima de 5000 caracteres ({len(yt_desc)} chars).")
+        if "<" in yt_title or ">" in yt_title or "<" in yt_desc or ">" in yt_desc:
+            errors.append(
+                "[Portão 3] Título ou descrição do YouTube Shorts contém '<' ou '>' literais (rejeitados pela API e pelo YouTube Studio)."
+            )
+
+    # Validate vitrine/catalogo.json affiliate links when entry exists (or when require_vitrine_entry=True)
+    catalogo_path = prod_dir.resolve().parents[1] / "vitrine" / "catalogo.json"
+    if catalogo_path.exists() and vitrine_code:
+        cat_data = json.loads(catalogo_path.read_text(encoding="utf-8"))
+        card = next((p for p in cat_data.get("produtos", []) if p.get("codigo") == vitrine_code), None)
+        if card is None:
+            if require_vitrine_entry:
+                errors.append(f"[Portão 3] Card {vitrine_code} ausente em vitrine/catalogo.json.")
+        else:
+            variacoes = card.get("variacoes", [])
+            stats["vitrine_variations"] = len(variacoes)
+            if not variacoes:
+                errors.append(f"[Portão 3] Card {vitrine_code} em vitrine/catalogo.json está sem variações.")
+            unmonetized = [
+                f"{v.get('rotulo', '?')} -> {v.get('url', '')}"
+                for v in variacoes
+                if not _is_monetized_affiliate_url(str(v.get("url", "")))
+            ]
+            stats["vitrine_monetized_pct"] = round(100.0 * (len(variacoes) - len(unmonetized)) / max(len(variacoes), 1), 1)
+            if unmonetized:
+                errors.append(
+                    f"[Portão 3] Card {vitrine_code} em vitrine/catalogo.json possui URLs sem link curto/tag de afiliado: "
+                    + "; ".join(unmonetized)
+                )
+
+    stats["pacote_md_bytes"] = pacote_path.stat().st_size
     return len(errors) == 0, errors, stats
 
 
