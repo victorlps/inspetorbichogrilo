@@ -7,7 +7,19 @@
       "titulo": "Fruta Liofilizada daVIDA — Linha Snack Só Fruta (15 g e Kits Travessia)",
       "avaliacao": "100% fruta · -92,4% peso (morango)",
       "resumo": "Desidratada a frio por congelamento rápido (-40 °C) e sublimação em alto vácuo abaixo do ponto triplo: 198 g de morango fresco concentrados em 15 g crocantes, zero açúcar ou óleo e 12 meses fora da geladeira.",
-      "tags": ["fruta liofilizada", "davida", "morango", "banana", "manga", "trilha", "trekking", "montanha", "sublimacao", "snack", "ibg-002"],
+      "tags": [
+        "fruta liofilizada",
+        "davida",
+        "morango",
+        "banana",
+        "manga",
+        "trilha",
+        "trekking",
+        "montanha",
+        "sublimacao",
+        "snack",
+        "ibg-002"
+      ],
       "nota_tecnica": "Cuidado físico de campo: leve no bolso superior da mochila para preservar as fatias porosas e, como o sachê 15 g é termosselado sem zíper, consuma logo após abrir na serra para evitar absorção de umidade.",
       "variacoes": [
         {
@@ -20,13 +32,13 @@
           "rotulo": "Kit 5x Morango Liofilizado 15 g (SKU SFMO)",
           "loja": "Mercado Livre Oficial",
           "especificacao": "198 g morango fresco -> 15 g (-92,4% massa) · 42 kcal/sachê",
-          "url": "https://www.mercadolivre.com.br/kit-5-un-snack-morango-fruta-liofilizado-davida--15g/up/MLBU3587020311"
+          "url": "https://meli.la/1GLJrwN"
         },
         {
           "rotulo": "Duo Banana e Morango 15 g (SKU SF02)",
           "loja": "Mercado Livre Oficial",
           "especificacao": "140 g fruta fresca -> 15 g · equilibra a acidez natural do morango",
-          "url": "https://www.mercadolivre.com.br/fruta-liofilizada-duo-banana-morango-snack-crocante-davida/p/MLB2090221032"
+          "url": "https://meli.la/2Ujo2v7"
         },
         {
           "rotulo": "Sabores Doces Avulsos: Manga / Banana / Maçã (15 g)",
@@ -35,10 +47,10 @@
           "url": "https://www.mercadolivre.com.br/snack-manga-liofilizada-davida-15g/p/MLB56338512"
         },
         {
-          "rotulo": "Morango Liofilizado 15 g (Compra Avulsa)",
-          "loja": "Amazon Brasil",
-          "especificacao": "EAN 7898968451323 · 100% morango liofilizado",
-          "url": "https://www.amazon.com.br/dp/B0HBD2Q4LJ"
+          "rotulo": "Banana Liofilizada 15 g (SKU SFB1)",
+          "loja": "Mercado Livre Oficial",
+          "especificacao": "60 g banana fresca -> 15 g (-75% massa) · 55 kcal/sachê",
+          "url": "https://meli.la/1M8fPcC"
         }
       ]
     },
@@ -48,7 +60,19 @@
       "titulo": "Ducha Eletrônica Zagonel ND Branco (127V e 220V)",
       "avaliacao": "4,8★ (3.152 aval.)",
       "resumo": "Regulador gradual eletrônico (dimmer TRIAC) em compartimento seco, tubo vedado com diafragma anti-queima e mesma resistência da antiga ND e Turbo.",
-      "tags": ["zagonel", "nd", "chuveiro", "ducha", "hydra", "thermosystem", "127v", "220v", "7700w", "5500w", "ibg-001"],
+      "tags": [
+        "zagonel",
+        "nd",
+        "chuveiro",
+        "ducha",
+        "hydra",
+        "thermosystem",
+        "127v",
+        "220v",
+        "7700w",
+        "5500w",
+        "ibg-001"
+      ],
       "nota_tecnica": "Regra nº 1 do manual: deixe correr água fria até encher a câmara (700 ml) antes de ligar o disjuntor.",
       "variacoes": [
         {

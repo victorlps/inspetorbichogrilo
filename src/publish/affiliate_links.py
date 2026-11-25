@@ -38,14 +38,20 @@ def _is_already_short_affiliate(url: str) -> bool:
 def _launch_profile(p: Any, headless_new: bool) -> BrowserContext:
     PW_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
     args = ["--disable-blink-features=AutomationControlled"]
+    kwargs: dict[str, Any] = {}
     if headless_new:
         args.append("--headless=new")
+        kwargs["user_agent"] = (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        )
     return p.chromium.launch_persistent_context(
         user_data_dir=str(PW_PROFILE_DIR),
         channel="chrome",
         headless=False,
         viewport={"width": 1280, "height": 900},
         args=args,
+        **kwargs,
     )
 
 
@@ -53,7 +59,7 @@ def _is_ml_logged_in(page: Page) -> bool:
     u = page.url.lower()
     if "/login" in u or "jms/mlb/lgz" in u or "identification" in u:
         return False
-    return "/afiliados" in u and page.locator("textarea, input[type='text'], input[type='url']").count() > 0
+    return "/afiliados/linkbuilder" in u and page.locator("textarea#url-0").count() > 0
 
 
 def _is_amz_sitestripe_ready(page: Page) -> bool:
@@ -61,44 +67,42 @@ def _is_amz_sitestripe_ready(page: Page) -> bool:
 
 
 def _generate_ml_short_link_on_page(page: Page, target_url: str) -> str | None:
-    if "/afiliados/linkbuilder" not in page.url:
-        page.goto(ML_LINKBUILDER_URL, wait_until="domcontentloaded", timeout=30000)
-        time.sleep(2.5)
+    # Always load clean Linkbuilder state so 'Gerar' button is fresh for every URL
+    page.goto(ML_LINKBUILDER_URL, wait_until="domcontentloaded", timeout=30000)
+    time.sleep(2.5)
     if not _is_ml_logged_in(page):
         return None
 
-    # Clear and paste target URL into Linkbuilder textarea/input
-    box = page.locator("textarea, input[type='url'], input[type='text']").first
+    # Paste target URL specifically into Linkbuilder's #url-0 textarea (not top search bar!)
+    box = page.locator("textarea#url-0").first
     box.wait_for(state="visible", timeout=15000)
     box.click()
-    page.keyboard.press("Meta+A")
-    page.keyboard.press("Backspace")
+    box.fill("")
     box.fill(target_url)
     time.sleep(0.5)
 
-    # Snapshot existing short links before clicking Gerar so we grab the newly generated one
-    before_txt = page.evaluate(
-        "() => document.body.innerText + '\\n' + Array.from(document.querySelectorAll('textarea,input')).map(e=>e.value||'').join('\\n')"
-    )
-    prev_links = set(
-        re.findall(r"https://(?:meli\.la/[A-Za-z0-9_-]+|(?:www\.)?mercadolivre\.com(?:\.br)?/sec/[A-Za-z0-9_-]+)", before_txt)
+    before_vals = set(
+        re.findall(
+            r"https://(?:meli\.la/[A-Za-z0-9_-]+|(?:www\.)?mercadolivre\.com(?:\.br)?/sec/[A-Za-z0-9_-]+)",
+            page.evaluate("() => Array.from(document.querySelectorAll('textarea,input')).map(e=>e.value||'').join('\\n') + '\\n' + document.body.innerText"),
+        )
     )
 
-    gen_btn = page.locator("button:has-text('Gerar'), button:has-text('Criar'), button[type='submit']").first
+    gen_btn = page.locator("button:has-text('Gerar')").first
     if gen_btn.count() == 0:
         return None
     gen_btn.click()
 
-    for _ in range(16):
+    for _ in range(20):
         time.sleep(0.8)
         after_txt = page.evaluate(
-            "() => document.body.innerText + '\\n' + Array.from(document.querySelectorAll('textarea,input')).map(e=>e.value||'').join('\\n')"
+            "() => Array.from(document.querySelectorAll('textarea,input')).map(e=>e.value||'').join('\\n') + '\\n' + document.body.innerText"
         )
         found = re.findall(
             r"https://(?:meli\.la/[A-Za-z0-9_-]+|(?:www\.)?mercadolivre\.com(?:\.br)?/sec/[A-Za-z0-9_-]+)",
             after_txt,
         )
-        new_links = [lk for lk in found if lk not in prev_links]
+        new_links = [lk for lk in found if lk not in before_vals]
         if new_links:
             return new_links[-1]
         if found:
